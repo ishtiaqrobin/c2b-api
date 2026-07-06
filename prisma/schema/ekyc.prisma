@@ -1,0 +1,28 @@
+model Ekyc {
+    id           String     @id @default(cuid())
+    userId       String     @unique
+    status       EkycStatus @default(PENDING)
+    rejectReason String?
+    verifiedAt   DateTime?
+    createdAt    DateTime   @default(now())
+    updatedAt    DateTime   @updatedAt
+
+    user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+    documents EkycDocument[]
+
+    @@map("ekyc")
+}
+
+model EkycDocument {
+    id        String      @id @default(cuid())
+    ekycId    String
+    docType   EkycDocType
+    fileUrl   String // cloudinary URL
+    publicId  String? // cloudinary public id
+    createdAt DateTime    @default(now())
+
+    ekyc Ekyc @relation(fields: [ekycId], references: [id], onDelete: Cascade)
+
+    @@index([ekycId])
+    @@map("ekyc_document")
+}

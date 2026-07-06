@@ -1,0 +1,153 @@
+enum Locale {
+    EN // English language preference
+    BN // Bengali language preference
+}
+
+enum UserType {
+    CUSTOMER // Normal users who sell their items to the business
+    MERCHANT // Small businesses or bulk sellers who sell items to the business
+    STAFF // Internal enterprise users whose access is governed by RBAC roles
+}
+
+enum AccountType {
+    INDIVIDUAL // Solo personal accounts
+    CORPORATION // B2B corporate legal entities
+}
+
+enum QualifiedInvoiceStatus {
+    NOT_APPLICABLE // Invoices not requiring qualified tax tracking
+    TARGET_AUDIENCE // Invoices needing specific local tax tracking
+}
+
+enum Sex {
+    MALE // Biological male designation
+    FEMALE // Biological female designation
+    OTHER // Diverse gender identity designation
+}
+
+enum AddressType {
+    HOME // Personal residential location
+    SHIPPING // Logistics destination location
+    RETURN // Reverse logistics delivery location
+    COMPANY // Legal registered business location
+}
+
+enum ItemCondition {
+    NEW // Factory sealed intact box item
+    LIKE_NEW // Opened box with mint physical condition
+    USED // Noticeably used item with minor aesthetic wear
+    DAMAGED // Broken or structurally impaired item meant for scrap buying
+}
+
+enum BuybackMethod {
+    IN_STORE // Customer physically visits a business location to sell
+    MAIL_IN // Reverse logistics via independent courier or agent pickup
+    CORPORATE // Bulk scrap or upgrades processed directly from offices
+}
+
+enum Courier {
+    STEADFAST // Local third party courier service
+    PATHAO // Domestic tech logistics partner
+    REDX // Domestic parcel delivery provider
+    PAPERFLY // Nationwide e commerce delivery partner
+    E_DESH // Local document and parcel delivery network
+    SA_PARCEL // S.A. Paribahan branch based transport service
+    SUNDARBAN // Sundarban Courier Service distribution network
+    ECURIER // Corporate e commerce logistics platform
+    DLVRY // Domestic regional parcel partner
+    STORE_PICKUP // Handled over the counter at physical outlets
+    COMPANY_AGENT // In house team member performing manual home pickup
+}
+
+enum EkycStatus {
+    PENDING // Initial onboarding verification awaiting initial admin review
+    IN_PROGRESS // Active scanning via OCR engine or manual checking
+    VERIFIED // Identity approved allowing payout transactions
+    REJECTED // Onboarding profile declined allowing user resubmission
+    RESUBMITTED // Corrected data re submitted by a previously rejected user
+    REJECTED_FINAL // Permanent blacklist blocking further registration attempts
+}
+
+enum EkycDocType {
+    NID // Standard National Identity Card
+    SMART_CARD // Machine readable Smart National Identity Card
+    PASSPORT // Machine readable international travel document
+    DRIVING_LICENSE // BRTA issued active motorized vehicle operation permit
+    BIRTH_CERTIFICATE // Local government authority identity registry document
+    TIN_CERTIFICATE // National Board of Revenue electronic tax file certificate
+    TRADE_LICENSE // Local City Corporation authorization for commercial trading
+    UTILITY_BILL // Valid structural billing statement verifying legal physical address
+}
+
+enum OrderStatus {
+    PENDING // Customer buyback draft request created but not committed
+    SUBMITTED // Buyback request confirmed by user and ready for logistics assignment
+    COURIER_ASSIGNED // Third party courier booking initiated for parcel pickup
+    PICK_ASSIGNED // Internal team field agent designated for manual pickup
+    PICKED_UP // Courier courier or company agent secured possession of the item
+    RECEIVED // Item safely reached the warehouse or over the counter desk
+    UNDER_INSPECTION // Quality control engineers conducting visual and functional diagnostics
+    PRICE_OFFERED // Dynamic final valuation price sent to user based on grading
+    APPROVED // Customer formally accepted the valuation offer price
+    REJECTED // Customer declined the offer price or structural policy failed
+    PAYMENT_PENDING // Transaction queued in accounting awaiting monetary release
+    PAID // Customer successfully paid via requested cash or financial medium
+    COMPLETED // Order lifecycle executed fully and financial books balanced
+    RETURN_SHIPPED // Declined items packaged and returned into tracking channels
+    RETURNED // Rejected goods safely hand delivered back to customer possession
+    CANCELLED // Lifecycle terminated early before asset possession transfer occurred
+}
+
+enum PaymentStatus {
+    PENDING // Transaction routing initiated but waiting for ledger confirmation
+    PROCESSING // Bank clearing house or MFS engine bulk payout operation active
+    PAID // Financial institution confirmed successful completion of funds transfer
+    FAILED // Transfer aborted by gateway due to processing error or account limitation
+    REFUNDED // Sent funds successfully pulled back or manually corrected via reconciliation
+}
+
+enum PaymentMethod {
+    BKASH // Mobile Financial Service digital wallet
+    NAGAD // Postal Department digital financial wallet
+    ROCKET // Bank backed mobile money wallet
+    BANK_TRANSFER // Direct electronic fund transfer via BEFTN or RTGS networks
+    CASH // Physical over the counter monetary settlement
+}
+
+enum AuditAction {
+    CREATE // New database record initialized
+    UPDATE // Existing data entry modified
+    DELETE // Record soft or hard deleted from ledger
+    STATUS_CHANGE // Workflow status machine variation execution
+    LOGIN // Security authorization checkpoint verification
+    EKYC_REVIEW // Verification officer updating identity record status
+    PAYMENT_UPDATE // Manual settlement correction by finance desk
+    STOCK_TRANSFER // Inter-store stock movement logged
+}
+
+enum NotificationChannel {
+    EMAIL // Electronic messaging server dispatch
+    SMS // Cellular short message text broadcasting
+    IN_APP // Realtime internal platform feed alerting
+}
+
+enum NotificationStatus {
+    PENDING // Message waiting inside message broker queues
+    SENT // Upstream gateway confirmed reception of event package
+    FAILED // Delivery aborted due to faulty endpoint or transport offline
+}
+
+enum StockStatus {
+    IN_STOCK // Physically present at the store, available for resale
+    LISTED_FOR_RESALE // Published/listed for sale to end customers
+    SOLD // Sold to a customer
+    DISPOSED // Written off as scrap or unsellable damaged stock
+    IN_TRANSIT // Currently moving between stores via an active StockTransfer
+}
+
+enum StockTransferStatus {
+    PENDING // Transfer created but not yet shipped
+    IN_TRANSIT // Shipped, en route to the destination store
+    RECEIVED // Confirmed received at the destination store
+    CANCELLED // Transfer cancelled before completion
+}

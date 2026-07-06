@@ -1,0 +1,65 @@
+model Role {
+    id          String   @id @default(cuid())
+    key         String   @unique // e.g. "store_manager"
+    name        String
+    description String?
+    // Authority level for hierarchy checks. Higher = more authority.
+    // e.g. Admin=100, StoreManager=50, StoreStaff=10.
+    // Used to block a lower-level role from assigning/revoking a higher-level one.
+    level       Int      @default(0)
+    isSystem    Boolean  @default(false)
+    isActive    Boolean  @default(true)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    permissions RolePermission[]
+    users       UserRole[]
+
+    @@index([level])
+    @@map("role")
+}
+
+model Permission {
+    id          String   @id @default(cuid())
+    key         String   @unique // e.g. "order.update"
+    group       String // e.g. "Operations"
+    description String?
+    createdAt   DateTime @default(now())
+
+    roles RolePermission[]
+
+    @@index([group])
+    @@map("permission")
+}
+
+model RolePermission {
+    roleId       String
+    permissionId String
+    createdAt    DateTime @default(now())
+
+    role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+    permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+    @@id([roleId, permissionId])
+    @@index([permissionId])
+    @@map("role_permission")
+}
+
+// User <-> Role, optionally scoped to a single store
+model UserRole {
+    id         String   @id @default(cuid())
+    userId     String
+    roleId     String
+    storeId    String? // null = global; set = role applies only to this store
+    assignedBy String?
+    createdAt  DateTime @default(now())
+
+    user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    role  Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+    store Store? @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, roleId, storeId])
+    @@index([roleId])
+    @@index([storeId])
+    @@map("user_role")
+}

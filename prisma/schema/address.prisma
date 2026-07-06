@@ -1,0 +1,42 @@
+model Address {
+    id     String      @id @default(cuid())
+    userId String
+    type   AddressType @default(HOME)
+    label  String? // optional friendly name
+    
+    recipientName   String?
+    telephone       String?
+    postCode        String
+    prefectureId    Int
+    cityTownVillage String
+    streetAddress   String
+    apartment       String?
+
+    isDefault Boolean   @default(false)
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+    prefecture Prefecture @relation(fields: [prefectureId], references: [id])
+    orders     Order[]
+
+    @@index([userId])
+    @@index([prefectureId])
+    @@map("address")
+}
+
+model Prefecture {
+    id     Int    @id @default(autoincrement())
+    code   String @unique // e.g. JP-13
+    nameEn String
+    nameBn String
+
+    individualProfiles  IndividualProfile[]
+    corpCompanyProfiles CorporationProfile[] @relation("CorpCompanyPrefecture")
+    corpContactProfiles CorporationProfile[] @relation("CorpContactPrefecture")
+    addresses           Address[]
+
+    @@map("prefecture")
+}

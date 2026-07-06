@@ -1,0 +1,75 @@
+model IndividualProfile {
+    id     String @id @default(cuid())
+    userId String @unique
+
+    qualifiedInvoiceStatus QualifiedInvoiceStatus @default(NOT_APPLICABLE)
+
+    fullName    String
+    telephone   String
+    dateOfBirth DateTime
+    sex         Sex
+    occupation  String?
+
+    postCode        String
+    prefectureId    Int
+    cityTownVillage String
+    streetAddress   String
+    apartment       String?
+
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+    prefecture Prefecture @relation(fields: [prefectureId], references: [id])
+
+    @@index([prefectureId])
+    @@map("individual_profile")
+}
+
+model CorporationProfile {
+    id     String @id @default(cuid())
+    userId String @unique
+
+    qualifiedInvoiceStatus QualifiedInvoiceStatus @default(NOT_APPLICABLE)
+
+    // Company Information
+    companyName            String
+    companyTelephone       String
+    companyPostCode        String
+    companyPrefectureId    Int
+    companyCityTownVillage String
+    companyStreetAddress   String
+    companyApartment       String?
+
+    // Person in charge
+    contactName            String
+    contactTelephone       String
+    contactDateOfBirth     DateTime
+    contactSex             Sex
+    contactOccupation      String?
+    contactPostCode        String
+    contactPrefectureId    Int
+    contactCityTownVillage String
+    contactStreetAddress   String
+    contactApartment       String?
+
+    // Bank account
+    bankAccount       String
+    bankAccountNumber String
+    bankAccountName   String
+
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+    companyPrefecture Prefecture @relation("CorpCompanyPrefecture", fields: [companyPrefectureId], references: [id])
+    contactPrefecture Prefecture @relation("CorpContactPrefecture", fields: [contactPrefectureId], references: [id])
+
+    @@index([companyPrefectureId])
+    @@index([contactPrefectureId])
+    @@map("corporation_profile")
+}

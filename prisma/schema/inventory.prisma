@@ -1,0 +1,63 @@
+// Tracks the physical journey of a bought-back item after it enters a store:
+// received -> in stock -> resold / disposed / transferred to another store.
+
+model StockItem {
+    id      String @id @default(cuid())
+    storeId String
+
+    // Links back to the buyback order that brought this unit in.
+    // Null when stock is added manually (e.g. opening inventory, correction).
+    orderItemId String? @unique
+
+    variantId String
+    condition ItemCondition
+    status    StockStatus   @default(IN_STOCK)
+
+    notes String?
+
+    receivedAt DateTime @default(now())
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    store     Store           @relation(fields: [storeId], references: [id])
+    variant   ProductVariant  @relation(fields: [variantId], references: [id])
+    orderItem OrderItem?      @relation(fields: [orderItemId], references: [id])
+    transfers StockTransfer[]
+
+    @@index([storeId, status])
+    @@index([variantId])
+    @@map("stock_item")
+}
+
+// Inter-store stock movement, kept as a full history (not overwritten) since
+// this is a core feature for the multi-store workflow. Each row is one
+// transfer attempt for one stock item — simple 1:1 design (no separate
+// "transfer batch" table) to keep row count and query complexity low on the
+// NeonDB free tier, while still preserving a complete audit trail.
+model StockTransfer {
+    id          String              @id @default(cuid())
+    stockItemId String
+    fromStoreId String
+    toStoreId   String
+    status      StockTransferStatus @default(PENDING)
+
+    initiatedBy String
+    receivedBy  String?
+
+    note String?
+
+    shippedAt  DateTime?
+    receivedAt DateTime?
+    createdAt  DateTime  @default(now())
+    updatedAt  DateTime  @updatedAt
+
+    stockItem StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+    fromStore Store     @relation("StockTransferFrom", fields: [fromStoreId], references: [id])
+    toStore   Store     @relation("StockTransferTo", fields: [toStoreId], references: [id])
+
+    @@index([stockItemId])
+    @@index([fromStoreId])
+    @@index([toStoreId])
+    @@index([status])
+    @@map("stock_transfer")
+}

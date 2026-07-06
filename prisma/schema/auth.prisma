@@ -1,0 +1,95 @@
+model User {
+    id            String  @id @default(cuid())
+    email         String  @unique
+    emailVerified Boolean @default(false)
+    name          String?
+    image         String?
+
+    userType    UserType     @default(CUSTOMER)
+    accountType AccountType?
+
+    // Super Owner — single source-of-truth flag, never derived from RBAC.
+    // Guarantees at least one account always has full platform access,
+    // independent of Role/Permission edits. Should only be true for 1-2 users.
+    isSuperOwner Boolean @default(false)
+
+    // Soft delete
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Auth relations
+    sessions Session[]
+    accounts Account[]
+
+    // Profiles (mutually exclusive based on accountType)
+    individualProfile  IndividualProfile?
+    corporationProfile CorporationProfile?
+
+    // Business relations
+    ekyc          Ekyc?
+    addresses     Address[]
+    carts         Cart[]
+    orders        Order[]
+    notifications Notification[]
+
+    // RBAC + admin
+    roles        UserRole[]
+    adminProfile AdminProfile?
+
+    @@index([userType])
+    @@index([isDeleted])
+    @@index([isSuperOwner])
+    @@map("user")
+}
+
+model Session {
+    id        String   @id @default(cuid())
+    userId    String
+    token     String   @unique
+    expiresAt DateTime
+    ipAddress String?
+    userAgent String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@map("session")
+}
+
+model Account {
+    id                    String    @id @default(cuid())
+    userId                String
+    accountId             String
+    providerId            String
+    accessToken           String?
+    refreshToken          String?
+    idToken               String?
+    accessTokenExpiresAt  DateTime?
+    refreshTokenExpiresAt DateTime?
+    scope                 String?
+    password              String?
+    createdAt             DateTime  @default(now())
+    updatedAt             DateTime  @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@map("account")
+}
+
+model Verification {
+    id         String   @id @default(cuid())
+    identifier String
+    value      String
+    expiresAt  DateTime
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    @@index([identifier])
+    @@map("verification")
+}

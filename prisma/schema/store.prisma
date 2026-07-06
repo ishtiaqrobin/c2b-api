@@ -1,0 +1,50 @@
+model Store {
+    id        String    @id @default(cuid())
+    slug      String    @unique
+    isActive  Boolean   @default(true)
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    translations  StoreTranslation[]
+    businessHours StoreBusinessHour[]
+    orders        Order[]
+    userRoles     UserRole[]
+    payments      Payment[]
+    adminTasks    AdminTask[]
+    stockItems    StockItem[]
+
+    // Named relations required because a transfer references two stores.
+    stockTransfersOut StockTransfer[] @relation("StockTransferFrom")
+    stockTransfersIn  StockTransfer[] @relation("StockTransferTo")
+
+    @@map("store")
+}
+
+model StoreTranslation {
+    id      String  @id @default(cuid())
+    storeId String
+    locale  Locale
+    name    String
+    address String?
+
+    store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+    @@unique([storeId, locale])
+    @@map("store_translation")
+}
+
+model StoreBusinessHour {
+    id        String  @id @default(cuid())
+    storeId   String
+    dayOfWeek Int // 0 = Sunday ... 6 = Saturday
+    openTime  String? // "10:20"
+    closeTime String? // "19:00"
+    isClosed  Boolean @default(false)
+
+    store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+    @@unique([storeId, dayOfWeek])
+    @@map("store_business_hour")
+}

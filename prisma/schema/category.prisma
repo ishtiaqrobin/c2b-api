@@ -1,0 +1,59 @@
+model Category {
+    id        String    @id @default(cuid())
+    slug      String    @unique
+    parentId  String?
+    isPopular Boolean   @default(false)
+    sortOrder Int       @default(0)
+    isActive  Boolean   @default(true)
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+    children Category[] @relation("CategoryTree")
+
+    translations CategoryTranslation[]
+    products     Product[]
+    banners      Banner[]
+    checkNotice  CategoryNotice?
+
+    @@index([parentId])
+    @@index([isPopular])
+    @@map("category")
+}
+
+model CategoryTranslation {
+    id         String @id @default(cuid())
+    categoryId String
+    locale     Locale
+    name       String
+
+    category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+    @@unique([categoryId, locale])
+    @@map("category_translation")
+}
+
+model CategoryNotice {
+    id         String   @id @default(cuid())
+    categoryId String   @unique
+    updatedAt  DateTime @updatedAt
+
+    category     Category                    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+    translations CategoryNoticeTranslation[]
+
+    @@map("category_notice")
+}
+
+model CategoryNoticeTranslation {
+    id       String @id @default(cuid())
+    noticeId String
+    locale   Locale
+    body     String
+
+    notice CategoryNotice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+    @@unique([noticeId, locale])
+    @@map("category_notice_translation")
+}

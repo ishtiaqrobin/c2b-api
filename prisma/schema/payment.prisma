@@ -1,0 +1,53 @@
+model Payment {
+    id      String @id @default(cuid())
+    orderId String @unique
+
+    // Denormalized from Order.storeId so store-wise payout queries
+    // don't need a join — critical for the Store Manager dashboard.
+    storeId String?
+
+    method    PaymentMethod
+    status    PaymentStatus @default(PENDING)
+    amount    Decimal       @db.Decimal(12, 2)
+    currency  String        @default("JPY")
+    paidAt    DateTime?
+    reference String?
+
+    // Who recorded/processed this payment (e.g. store staff handling cash).
+    // Needed for the audit trail — distinct from the customer's userId on Order.
+    processedBy String?
+
+    // Raw gateway/webhook payload (bKash/Nagad/SSLCommerz response, fees, etc.)
+    // Kept as a single nullable Json column instead of a separate log table
+    // to avoid extra rows on the NeonDB free tier.
+    gatewayMeta Json?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    order         Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+    store         Store?                 @relation(fields: [storeId], references: [id])
+    statusHistory PaymentStatusHistory[]
+
+    @@index([storeId])
+    @@index([status])
+    @@map("payment")
+}
+
+// Intentionally NOT logging every transition (e.g. PENDING -> PROCESSING).
+// Only terminal/sensitive states are recorded here to keep row growth low
+// on the free tier: PAID, FAILED, REFUNDED.
+model PaymentStatusHistory {
+    id        String        @id @default(cuid())
+    paymentId String
+    oldStatus PaymentStatus
+    newStatus PaymentStatus
+    changedBy String?
+    note      String?
+    createdAt DateTime      @default(now())
+
+    payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+    @@index([paymentId])
+    @@map("payment_status_history")
+}
