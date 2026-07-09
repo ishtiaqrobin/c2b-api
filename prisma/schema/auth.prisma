@@ -13,9 +13,17 @@ model User {
     // independent of Role/Permission edits. Should only be true for 1-2 users.
     isSuperOwner Boolean @default(false)
 
+    // User status flags
+    status             UserStatus @default(ACTIVE)
+    needPasswordChange Boolean    @default(false)
+
     // Soft delete
     isDeleted Boolean   @default(false)
     deletedAt DateTime?
+
+    // Active/Banned flags
+    isActive Boolean @default(true)
+    isBanned Boolean @default(false)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

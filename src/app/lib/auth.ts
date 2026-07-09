@@ -70,6 +70,32 @@ export const auth = betterAuth({
         defaultValue: null,
         input: false,
       },
+      status: {
+        type: "string",
+        required: true,
+        defaultValue: "ACTIVE",
+        input: false,
+      },
+      needPasswordChange: {
+        type: "boolean",
+        required: true,
+        defaultValue: false,
+        input: false,
+      },
+      isActive: {
+        type: "boolean",
+        required: true,
+        defaultValue: true,
+        input: false,
+      },
+      isBanned: {
+        type: "boolean",
+        required: true,
+        defaultValue: false,
+        input: false,
+      },
+      // individualProfile
+      // corporationProfile and more (maybe add this here if needed) can be added as additionalFields, but for now we will manage them separately in the user module.
     },
   },
 

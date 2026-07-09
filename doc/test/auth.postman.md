@@ -142,35 +142,96 @@ All API routes are prefixed with `/api/v1`.
 
 ---
 
-## 4. Login — Google OAuth
+## 4. Change Password
 
-**GET** `/api/v1/auth/login/google`
+**POST** `/api/v1/auth/change-password`
 
-> Opens the Google OAuth consent screen in the browser. After consent, better-auth redirects to `/api/v1/auth/google/success` and sets the session cookie.
+**Headers:** Cookie `better-auth.session_token=<token>`
+
+```json
+{
+  "currentPassword": "password123",
+  "newPassword": "newSecurePass456",
+  "revokeOtherSessions": true
+}
+```
+
+> Sets `needPasswordChange` to `false` on success.
 
 ---
 
-## 5. Get Current User (Me)
+## 5. Email Verification (OTP)
+
+**POST** `/api/v1/auth/verify-email`
+
+```json
+{
+  "email": "john@example.com",
+  "otp": "123456"
+}
+```
+
+> The OTP is sent via email after registration. In dev mode, check the server console logs for the OTP. Sets `emailVerified` to `true` on success.
+
+---
+
+## 6. Forget Password (Request OTP)
+
+**POST** `/api/v1/auth/forget-password`
+
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+> Sends a password-reset OTP to the user's email. The user must have a verified email.
+
+---
+
+## 7. Reset Password (Verify OTP + New Password)
+
+**POST** `/api/v1/auth/reset-password`
+
+```json
+{
+  "email": "john@example.com",
+  "otp": "123456",
+  "newPassword": "newSecurePass789"
+}
+```
+
+> On success, clears all existing sessions (forces re-login).
+
+---
+
+## 8. Get Current User (Me — Auth Module)
 
 **GET** `/api/v1/auth/me`
 
-**Headers:** Cookie `better-auth.session_token=<token>` (set automatically by browser after login)
+**Headers:** Cookie `better-auth.session_token=<token>`
+
+Returns the authenticated user's profile from the auth module.
 
 ---
 
-## 6. Get Current User (User module)
+## 9. Get Current User (Me — User Module)
 
 **GET** `/api/v1/users/me`
 
 **Headers:** Cookie `better-auth.session_token=<token>`
 
+Returns the authenticated user's profile from the user module (with profile details).
+
 ---
 
-## 7. Logout
+## 10. Logout
 
 **POST** `/api/v1/auth/logout`
 
 **Headers:** Cookie `better-auth.session_token=<token>`
+
+Revokes the better-auth session server-side and clears the session cookie.
 
 ---
 

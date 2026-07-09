@@ -10,9 +10,10 @@ router.get("/me", checkAuth, AuthController.getMe);
 // Server-side sign out (revokes better-auth session).
 router.post("/logout", checkAuth, AuthController.logout);
 
-// Google OAuth flow.
-router.get("/login/google", AuthController.googleLogin);
-router.get("/google/success", AuthController.googleLoginSuccess);
-router.get("/oauth/error", AuthController.handleOAuthError);
+router.post("/change-password", checkAuth, AuthController.changePassword);
+
+router.post("/verify-email", AuthController.verifyEmail);
+router.post("/forget-password", AuthController.forgetPassword);
+router.post("/reset-password", AuthController.resetPassword);
 
 export const AuthRoutes = router;

@@ -1,5 +1,5 @@
 import { prisma } from "../../src/app/lib/prisma";
-import { UserType } from "../../src/generated/prisma/enums";
+import { UserStatus, UserType } from "../../src/generated/prisma/enums";
 import { auth } from "../../src/app/lib/auth";
 import { env } from "../../src/app/config/env";
 import {
@@ -97,6 +97,9 @@ async function seedOwner() {
       emailVerified: true,
       isDeleted: false,
       deletedAt: null,
+      status: UserStatus.ACTIVE,
+      needPasswordChange: false,
+      isActive: true,
     },
   });
 

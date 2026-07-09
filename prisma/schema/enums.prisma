@@ -3,6 +3,13 @@ enum Locale {
     BN // Bengali language preference
 }
 
+// User Status Enum
+enum UserStatus {
+    ACTIVE
+    BLOCKED
+    DELETED
+}
+
 enum UserType {
     CUSTOMER // Normal users who sell their items to the business
     MERCHANT // Small businesses or bulk sellers who sell items to the business

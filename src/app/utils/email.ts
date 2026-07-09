@@ -44,7 +44,7 @@ export const sendEmail = async ({
     const html = await ejs.renderFile(templatePath, templateData);
 
     const info = await transport.sendMail({
-      from: `"PH Healthcare" <${env.EMAIL_SENDER.SMTP_USER}>`,
+      from: `"C2B" <${env.EMAIL_SENDER.SMTP_USER}>`,
       to: to,
       subject: subject,
       html: html,
