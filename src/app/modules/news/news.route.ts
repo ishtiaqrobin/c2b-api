@@ -2,7 +2,10 @@ import { Router } from "express";
 import { NewsController } from "./news.controller";
 import { checkAuth } from "../../middleware/checkAuth";
 import { requirePermission } from "../../middleware/requirePermission";
-import { validateRequest } from "../../middleware/validateRequest";
+import {
+  validateQuery,
+  validateRequest,
+} from "../../middleware/validateRequest";
 import {
   createNewsZodSchema,
   updateNewsZodSchema,
@@ -14,7 +17,8 @@ const router = Router();
 // Public: list news
 router.get(
   "/",
-  validateRequest(listNewsQueryZodSchema),
+  // validateRequest(listNewsQueryZodSchema),
+  validateQuery(listNewsQueryZodSchema),
   NewsController.listNews,
 );
 
