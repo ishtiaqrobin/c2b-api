@@ -1,16 +1,17 @@
 model Banner {
-    id            String    @id @default(cuid())
-    categoryId    String? // null = root/common banner
+    id         String  @id @default(cuid())
+    categoryId String? // null = root/common banner
+
     imageUrl      String
     imagePublicId String?
     linkUrl       String?
-    
-    sortOrder     Int       @default(0)
-    isActive      Boolean   @default(true)
-    isDeleted     Boolean   @default(false)
-    deletedAt     DateTime?
-    createdAt     DateTime  @default(now())
-    updatedAt     DateTime  @updatedAt
+
+    sortOrder Int       @default(0)
+    isActive  Boolean   @default(true)
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
 
     category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 

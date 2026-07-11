@@ -2,7 +2,11 @@ import { Router } from "express";
 import { BannerController } from "./banner.controller";
 import { checkAuth } from "../../middleware/checkAuth";
 import { requirePermission } from "../../middleware/requirePermission";
-import { validateRequest } from "../../middleware/validateRequest";
+import {
+  validateRequest,
+  validateQuery,
+} from "../../middleware/validateRequest";
+import { multerUpload } from "../../config/multer.config";
 import {
   createBannerZodSchema,
   updateBannerZodSchema,
@@ -14,7 +18,7 @@ const router = Router();
 // Public: list banners
 router.get(
   "/",
-  validateRequest(listBannerQueryZodSchema),
+  validateQuery(listBannerQueryZodSchema),
   BannerController.listBanners,
 );
 
@@ -26,6 +30,7 @@ router.post(
   "/",
   checkAuth,
   requirePermission("banner.manage"),
+  multerUpload("banners").single("image"),
   validateRequest(createBannerZodSchema),
   BannerController.createBanner,
 );
@@ -35,6 +40,7 @@ router.patch(
   "/:id",
   checkAuth,
   requirePermission("banner.manage"),
+  multerUpload("banners").single("image"),
   validateRequest(updateBannerZodSchema),
   BannerController.updateBanner,
 );

@@ -2,6 +2,7 @@ import status from "http-status";
 import { Prisma } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
+import { deleteFileByPublicId } from "../../config/cloudinary.config";
 import {
   IBannerCreate,
   IBannerUpdate,
@@ -104,6 +105,11 @@ const updateBanner = async (id: string, payload: IBannerUpdate) => {
     }
   }
 
+  // If a new image is being uploaded, delete the old one from Cloudinary
+  if (payload.imageUrl && banner.imagePublicId) {
+    await deleteFileByPublicId(banner.imagePublicId);
+  }
+
   const updated = await prisma.banner.update({
     where: { id },
     data: {
@@ -135,6 +141,11 @@ const deleteBanner = async (id: string) => {
 
   if (!banner) {
     throw new AppError(status.NOT_FOUND, "Banner not found");
+  }
+
+  // Delete image from Cloudinary
+  if (banner.imagePublicId) {
+    await deleteFileByPublicId(banner.imagePublicId);
   }
 
   // Soft delete

@@ -13,6 +13,32 @@ const ensureUser = (req: Request) => {
 
 const param = (req: Request, key: string) => req.params[key] as string;
 
+const extractFileInfo = (req: Request) => {
+  if (!req.file) {
+    throw new AppError(status.BAD_REQUEST, "Banner image is required");
+  }
+
+  const file = req.file as Express.Multer.File & {
+    path?: string;
+    filename?: string;
+    [key: string]: unknown;
+  };
+
+  const imageUrl =
+    (file.path as string) ||
+    ((file as Record<string, unknown>).location as string);
+  const imagePublicId =
+    (file.filename as string) ||
+    ((file as Record<string, unknown>).public_id as string) ||
+    null;
+
+  if (!imageUrl) {
+    throw new AppError(status.BAD_REQUEST, "File upload failed");
+  }
+
+  return { imageUrl, imagePublicId };
+};
+
 // Public: list banners
 const listBanners = catchAsync(async (req: Request, res: Response) => {
   const query =
@@ -41,7 +67,12 @@ const getBannerById = catchAsync(async (req: Request, res: Response) => {
 // Admin: create banner
 const createBanner = catchAsync(async (req: Request, res: Response) => {
   ensureUser(req);
-  const result = await BannerService.createBanner(req.body);
+  const { imageUrl, imagePublicId } = extractFileInfo(req);
+  const result = await BannerService.createBanner({
+    ...req.body,
+    imageUrl,
+    imagePublicId,
+  });
   sendResponse(res, {
     statusCode: status.CREATED,
     success: true,
@@ -53,7 +84,21 @@ const createBanner = catchAsync(async (req: Request, res: Response) => {
 // Admin: update banner
 const updateBanner = catchAsync(async (req: Request, res: Response) => {
   ensureUser(req);
-  const result = await BannerService.updateBanner(param(req, "id"), req.body);
+
+  let imageUrl: string | undefined;
+  let imagePublicId: string | null | undefined;
+
+  if (req.file) {
+    const fileInfo = extractFileInfo(req);
+    imageUrl = fileInfo.imageUrl;
+    imagePublicId = fileInfo.imagePublicId;
+  }
+
+  const result = await BannerService.updateBanner(param(req, "id"), {
+    ...req.body,
+    ...(imageUrl !== undefined ? { imageUrl } : {}),
+    ...(imagePublicId !== undefined ? { imagePublicId } : {}),
+  });
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
