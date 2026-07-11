@@ -95,19 +95,44 @@ const setDefaultAddress = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Public/Shared: list prefectures
-const listPrefectures = catchAsync(async (req: Request, res: Response) => {
+// Public/Shared: list districts
+const listDistricts = catchAsync(async (req: Request, res: Response) => {
   const query =
     (req as unknown as Record<string, unknown>).validatedQuery ?? req.query;
-  const result = await AddressService.listPrefectures(query);
+  const result = await AddressService.listDistricts(query);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: "Prefectures retrieved",
+    message: "Districts retrieved",
     data: result.data,
     meta: result.meta,
   });
 });
+
+// Public/Shared: list divisions
+const listDivisions = catchAsync(async (req: Request, res: Response) => {
+  const result = await AddressService.listDivisions();
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Divisions retrieved",
+    data: result,
+  });
+});
+
+// Public/Shared: get districts by division
+const getDistrictsByDivision = catchAsync(
+  async (req: Request, res: Response) => {
+    const divisionId = parseInt(param(req, "divisionId"), 10);
+    const result = await AddressService.getDistrictsByDivision(divisionId);
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: "Districts retrieved",
+      data: result,
+    });
+  },
+);
 
 export const AddressController = {
   getMyAddresses,
@@ -116,5 +141,7 @@ export const AddressController = {
   updateAddress,
   deleteAddress,
   setDefaultAddress,
-  listPrefectures,
+  listDistricts,
+  listDivisions,
+  getDistrictsByDivision,
 };

@@ -22,9 +22,9 @@ All API routes are prefixed with `/api/v1`.
     "telephone": "01712345678",
     "dateOfBirth": "1995-06-15",
     "sex": "MALE",
-    "occupation": "Software Engineer",
+    "occupation": "OTHERS",
     "postCode": "1207",
-    "prefectureId": 1,
+    "districtId": 1,
     "cityTownVillage": "Dhaka Kotwali",
     "streetAddress": "12/A Dhanmondi R/A",
     "apartment": "Flat 4B"
@@ -46,7 +46,7 @@ All API routes are prefixed with `/api/v1`.
     "dateOfBirth": "1995-06-15",
     "sex": "MALE",
     "postCode": "1207",
-    "prefectureId": 1,
+    "districtId": 1,
     "cityTownVillage": "Dhaka Kotwali",
     "streetAddress": "12/A Dhanmondi R/A"
   }
@@ -69,24 +69,26 @@ All API routes are prefixed with `/api/v1`.
   "company": {
     "companyName": "Acme Corporation Ltd.",
     "companyTelephone": "0212345678",
-    "postCode": "1000",
-    "prefectureId": 1,
-    "cityTownVillage": "Chiyoda",
-    "streetAddress": "1-2-3 Marunouchi",
-    "apartment": "Tower A, 10F"
+    "companyPostCode": "1000",
+    "companyDistrictId": 1,
+    "companyCityTownVillage": "Chiyoda",
+    "companyStreetAddress": "1-2-3 Marunouchi",
+    "companyApartment": "Tower A, 10F"
   },
   "contact": {
     "contactName": "Taro Yamada",
     "contactTelephone": "09012345678",
     "contactDateOfBirth": "1988-03-20",
     "contactSex": "MALE",
-    "contactOccupation": "Director",
+    "contactOccupation": "OTHERS",
     "contactPostCode": "1000",
-    "contactPrefectureId": 1,
+    "contactDistrictId": 1,
     "contactCityTownVillage": "Chiyoda",
     "contactStreetAddress": "1-2-3 Marunouchi",
     "contactApartment": "Tower A, 10F",
-    "bankAccount": "普通",
+    "bankAccount": "Dutch Bangla Bank",
+    "bankAccountBranch": "Shinjuku Branch",
+    "bankAccountType": "CURRENT",
     "bankAccountNumber": "1234567",
     "bankAccountName": "Acme Corporation Ltd."
   }
@@ -104,10 +106,10 @@ All API routes are prefixed with `/api/v1`.
   "company": {
     "companyName": "Acme Corporation Ltd.",
     "companyTelephone": "0212345678",
-    "postCode": "1000",
-    "prefectureId": 1,
-    "cityTownVillage": "Chiyoda",
-    "streetAddress": "1-2-3 Marunouchi"
+    "companyPostCode": "1000",
+    "companyDistrictId": 1,
+    "companyCityTownVillage": "Chiyoda",
+    "companyStreetAddress": "1-2-3 Marunouchi"
   },
   "contact": {
     "contactName": "Taro Yamada",
@@ -115,10 +117,12 @@ All API routes are prefixed with `/api/v1`.
     "contactDateOfBirth": "1988-03-20",
     "contactSex": "MALE",
     "contactPostCode": "1000",
-    "contactPrefectureId": 1,
+    "contactDistrictId": 1,
     "contactCityTownVillage": "Chiyoda",
     "contactStreetAddress": "1-2-3 Marunouchi",
-    "bankAccount": "普通",
+    "bankAccount": "Dutch Bangla Bank",
+    "bankAccountBranch": "Shinjuku Branch",
+    "bankAccountType": "CURRENT",
     "bankAccountNumber": "1234567",
     "bankAccountName": "Acme Corporation Ltd."
   }
@@ -263,9 +267,9 @@ Revokes the better-auth session server-side and clears the session cookie.
 
 ISO 8601 date string, e.g. `"1995-06-15"`.
 
-### prefectureId
+### districtId
 
-Integer ID referencing a `Prefecture` record. Run `npm run seed:district` first to seed Bangladesh districts. Use `1` for Dhaka (BD-DHA) as a default test value.
+Integer ID referencing a `District` record. Run `npm run seed:district` first to seed Bangladesh divisions & districts. Use `1` for Dhaka (BD-DHA) as a default test value.
 
 ---
 
@@ -273,5 +277,5 @@ Integer ID referencing a `Prefecture` record. Run `npm run seed:district` first 
 
 1. **Cookie handling:** After sign-in, Postman automatically stores and sends cookies. No manual header needed for authenticated routes.
 2. **Environment variables:** Set `baseUrl = http://localhost:5000` as a collection variable.
-3. **Prefecture seeding:** Run `npm run seed:district` before testing registration so `prefectureId` values exist.
+3. **Seeding:** Run `npm run seed:district` before testing registration so `districtId` values exist.
 4. **Email verification:** After registration, check the console log for the OTP (dev mode) or use the verification email link.

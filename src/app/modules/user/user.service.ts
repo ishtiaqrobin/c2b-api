@@ -1,5 +1,8 @@
 import status from "http-status";
-import { AccountType } from "../../../generated/prisma/enums";
+import {
+  AccountType,
+  QualifiedInvoiceStatus,
+} from "../../../generated/prisma/enums";
 import { auth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
@@ -50,14 +53,15 @@ const register = async (payload: IRegisterPayload) => {
         await tx.individualProfile.create({
           data: {
             userId,
-            qualifiedInvoiceStatus: p.qualifiedInvoiceStatus ?? undefined,
+            qualifiedInvoiceStatus:
+              p.qualifiedInvoiceStatus ?? QualifiedInvoiceStatus.NOT_APPLICABLE,
             fullName: p.profile.fullName,
             telephone: p.profile.telephone,
             dateOfBirth: new Date(p.profile.dateOfBirth),
             sex: p.profile.sex,
             occupation: p.profile.occupation,
             postCode: p.profile.postCode,
-            prefectureId: p.profile.prefectureId,
+            districtId: p.profile.districtId,
             cityTownVillage: p.profile.cityTownVillage,
             streetAddress: p.profile.streetAddress,
             apartment: p.profile.apartment,
@@ -70,25 +74,28 @@ const register = async (payload: IRegisterPayload) => {
         await tx.corporationProfile.create({
           data: {
             userId,
-            qualifiedInvoiceStatus: p.qualifiedInvoiceStatus ?? undefined,
+            qualifiedInvoiceStatus:
+              p.qualifiedInvoiceStatus ?? QualifiedInvoiceStatus.NOT_APPLICABLE,
             companyName: p.company.companyName,
             companyTelephone: p.company.companyTelephone,
-            companyPostCode: p.company.postCode,
-            companyPrefectureId: p.company.prefectureId,
-            companyCityTownVillage: p.company.cityTownVillage,
-            companyStreetAddress: p.company.streetAddress,
-            companyApartment: p.company.apartment,
+            companyPostCode: p.company.companyPostCode,
+            companyDistrictId: p.company.companyDistrictId,
+            companyCityTownVillage: p.company.companyCityTownVillage,
+            companyStreetAddress: p.company.companyStreetAddress,
+            companyApartment: p.company.companyApartment,
             contactName: p.contact.contactName,
             contactTelephone: p.contact.contactTelephone,
             contactDateOfBirth: new Date(p.contact.contactDateOfBirth),
             contactSex: p.contact.contactSex,
             contactOccupation: p.contact.contactOccupation,
             contactPostCode: p.contact.contactPostCode,
-            contactPrefectureId: p.contact.contactPrefectureId,
+            contactDistrictId: p.contact.contactDistrictId,
             contactCityTownVillage: p.contact.contactCityTownVillage,
             contactStreetAddress: p.contact.contactStreetAddress,
             contactApartment: p.contact.contactApartment,
             bankAccount: p.contact.bankAccount,
+            bankAccountBranch: p.contact.bankAccountBranch,
+            bankAccountType: p.contact.bankAccountType,
             bankAccountNumber: p.contact.bankAccountNumber,
             bankAccountName: p.contact.bankAccountName,
           },

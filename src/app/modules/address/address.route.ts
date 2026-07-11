@@ -8,16 +8,21 @@ import {
 import {
   createAddressZodSchema,
   updateAddressZodSchema,
-  listPrefectureQueryZodSchema,
+  listDistrictQueryZodSchema,
 } from "./address.validation";
 
 const router = Router();
 
-// Prefecture listing (public — no auth required)
+// Division & District listing (public — no auth required)
+router.get("/divisions", AddressController.listDivisions);
 router.get(
-  "/prefectures",
-  validateQuery(listPrefectureQueryZodSchema),
-  AddressController.listPrefectures,
+  "/divisions/:divisionId/districts",
+  AddressController.getDistrictsByDivision,
+);
+router.get(
+  "/districts",
+  validateQuery(listDistrictQueryZodSchema),
+  AddressController.listDistricts,
 );
 
 // Customer: address CRUD

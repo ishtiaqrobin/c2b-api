@@ -6,7 +6,7 @@ export interface IAddressCreate {
   recipientName?: string;
   telephone?: string;
   postCode: string;
-  prefectureId: number;
+  districtId: number;
   cityTownVillage: string;
   streetAddress: string;
   apartment?: string;
@@ -19,14 +19,14 @@ export interface IAddressUpdate {
   recipientName?: string;
   telephone?: string;
   postCode?: string;
-  prefectureId?: number;
+  districtId?: number;
   cityTownVillage?: string;
   streetAddress?: string;
   apartment?: string;
   isDefault?: boolean;
 }
 
-export interface IPrefectureListQuery {
+export interface IDistrictListQuery {
   page?: string;
   limit?: string;
   search?: string;

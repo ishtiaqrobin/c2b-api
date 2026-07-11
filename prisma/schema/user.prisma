@@ -8,10 +8,10 @@ model IndividualProfile {
     telephone   String
     dateOfBirth DateTime
     sex         Sex
-    occupation  String?
+    occupation  OccupationType @default(OTHERS)
 
     postCode        String
-    prefectureId    Int
+    districtId      Int
     cityTownVillage String
     streetAddress   String
     apartment       String?
@@ -21,10 +21,10 @@ model IndividualProfile {
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
 
-    user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-    prefecture Prefecture @relation(fields: [prefectureId], references: [id])
+    user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    district District @relation(fields: [districtId], references: [id])
 
-    @@index([prefectureId])
+    @@index([districtId])
     @@map("individual_profile")
 }
 
@@ -32,44 +32,48 @@ model CorporationProfile {
     id     String @id @default(cuid())
     userId String @unique
 
-    qualifiedInvoiceStatus QualifiedInvoiceStatus @default(NOT_APPLICABLE)
+    qualifiedInvoiceStatus String
 
     // Company Information
     companyName            String
     companyTelephone       String
     companyPostCode        String
-    companyPrefectureId    Int
+    companyDistrictId      Int
     companyCityTownVillage String
     companyStreetAddress   String
     companyApartment       String?
 
-    // Person in charge
-    contactName            String
-    contactTelephone       String
-    contactDateOfBirth     DateTime
-    contactSex             Sex
-    contactOccupation      String?
-    contactPostCode        String
-    contactPrefectureId    Int
+    // Person in charge information
+    contactName        String
+    contactTelephone   String
+    contactDateOfBirth DateTime
+    contactSex         Sex
+
+    contactOccupation OccupationType @default(OTHERS)
+    contactPostCode   String
+    contactDistrictId Int
+
     contactCityTownVillage String
     contactStreetAddress   String
     contactApartment       String?
 
     // Bank account
     bankAccount       String
-    bankAccountNumber String
+    bankAccountBranch String
+    bankAccountType   BankAccountType
     bankAccountName   String
+    bankAccountNumber String
 
     isDeleted Boolean   @default(false)
     deletedAt DateTime?
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
 
-    user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-    companyPrefecture Prefecture @relation("CorpCompanyPrefecture", fields: [companyPrefectureId], references: [id])
-    contactPrefecture Prefecture @relation("CorpContactPrefecture", fields: [contactPrefectureId], references: [id])
+    user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    companyDistrict District @relation("CorpCompanyDistrict", fields: [companyDistrictId], references: [id])
+    contactDistrict District @relation("CorpContactDistrict", fields: [contactDistrictId], references: [id])
 
-    @@index([companyPrefectureId])
-    @@index([contactPrefectureId])
+    @@index([companyDistrictId])
+    @@index([contactDistrictId])
     @@map("corporation_profile")
 }

@@ -8,13 +8,74 @@ http://localhost:5000/api/v1
 
 ## Authentication
 
-Address CRUD endpoints require a valid session cookie (`better.auth.session_token`). Prefecture listing is public.
+Address CRUD endpoints require a valid session cookie (`better-auth.session_token`). Division & district listing is public.
 
 ---
 
-## 1. List Prefectures
+## 1. List Divisions
 
-**GET** `/addresses/prefectures`
+**GET** `/addresses/divisions`
+
+### Response (200)
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "Divisions retrieved",
+  "data": [
+    {
+      "id": 1,
+      "code": "BD-1",
+      "nameEn": "Dhaka",
+      "nameBn": "ঢাকা"
+    },
+    {
+      "id": 2,
+      "code": "BD-2",
+      "nameEn": "Chattogram",
+      "nameBn": "চট্টগ্রাম"
+    }
+  ]
+}
+```
+
+---
+
+## 2. List Districts by Division
+
+**GET** `/addresses/divisions/:divisionId/districts`
+
+### Path Parameters
+
+| Parameter  | Type | Required | Description       |
+| ---------- | ---- | -------- | ----------------- |
+| divisionId | int  | Yes      | Division ID (1–8) |
+
+### Response (200)
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "Districts retrieved",
+  "data": [
+    {
+      "id": 1,
+      "code": "BD-DHA",
+      "nameEn": "Dhaka",
+      "nameBn": "ঢাকা",
+      "divisionId": 1
+    }
+  ]
+}
+```
+
+---
+
+## 3. List Districts (paginated, searchable)
+
+**GET** `/addresses/districts`
 
 ### Query Parameters
 
@@ -30,27 +91,28 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
 {
   "statusCode": 200,
   "success": true,
-  "message": "Prefectures retrieved",
+  "message": "Districts retrieved",
   "data": [
     {
-      "id": 13,
-      "code": "JP-13",
-      "nameEn": "Tokyo",
-      "nameBn": "টোকিও"
+      "id": 1,
+      "code": "BD-DHA",
+      "nameEn": "Dhaka",
+      "nameBn": "ঢাকা",
+      "divisionId": 1
     }
   ],
   "meta": {
     "page": 1,
     "limit": 50,
-    "total": 47,
-    "totalPages": 1
+    "total": 64,
+    "totalPages": 2
   }
 }
 ```
 
 ---
 
-## 2. Get My Addresses
+## 4. Get My Addresses
 
 **GET** `/addresses/my`
 
@@ -68,22 +130,22 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
       "type": "HOME",
       "label": "My Home",
       "recipientName": "John Doe",
-      "telephone": "090-1234-5678",
-      "postCode": "100-0001",
-      "prefectureId": 13,
-      "cityTownVillage": "Chiyoda-ku",
-      "streetAddress": "1-1-1 Chiyoda",
-      "apartment": "Tower A 1201",
+      "telephone": "01712345678",
+      "postCode": "1207",
+      "districtId": 1,
+      "cityTownVillage": "Dhaka Kotwali",
+      "streetAddress": "12/A Dhanmondi R/A",
+      "apartment": "Flat 4B",
       "isDefault": true,
       "isDeleted": false,
       "deletedAt": null,
       "createdAt": "2026-06-21T10:00:00.000Z",
       "updatedAt": "2026-06-21T10:00:00.000Z",
-      "prefecture": {
-        "id": 13,
-        "code": "JP-13",
-        "nameEn": "Tokyo",
-        "nameBn": "টোকিও"
+      "district": {
+        "id": 1,
+        "code": "BD-DHA",
+        "nameEn": "Dhaka",
+        "nameBn": "ঢাকা"
       }
     }
   ]
@@ -92,7 +154,7 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
 
 ---
 
-## 3. Get Single Address
+## 5. Get Single Address
 
 **GET** `/addresses/my/:id`
 
@@ -114,18 +176,18 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
     "type": "HOME",
     "label": "My Home",
     "recipientName": "John Doe",
-    "telephone": "090-1234-5678",
-    "postCode": "100-0001",
-    "prefectureId": 13,
-    "cityTownVillage": "Chiyoda-ku",
-    "streetAddress": "1-1-1 Chiyoda",
-    "apartment": "Tower A 1201",
+    "telephone": "01712345678",
+    "postCode": "1207",
+    "districtId": 1,
+    "cityTownVillage": "Dhaka Kotwali",
+    "streetAddress": "12/A Dhanmondi R/A",
+    "apartment": "Flat 4B",
     "isDefault": true,
-    "prefecture": {
-      "id": 13,
-      "code": "JP-13",
-      "nameEn": "Tokyo",
-      "nameBn": "টোকিও"
+    "district": {
+      "id": 1,
+      "code": "BD-DHA",
+      "nameEn": "Dhaka",
+      "nameBn": "ঢাকা"
     }
   }
 }
@@ -133,7 +195,7 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
 
 ---
 
-## 4. Create Address
+## 6. Create Address
 
 **POST** `/addresses/my`
 
@@ -144,12 +206,12 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
   "type": "HOME",
   "label": "My Home",
   "recipientName": "John Doe",
-  "telephone": "090-1234-5678",
-  "postCode": "100-0001",
-  "prefectureId": 13,
-  "cityTownVillage": "Chiyoda-ku",
-  "streetAddress": "1-1-1 Chiyoda",
-  "apartment": "Tower A 1201",
+  "telephone": "01712345678",
+  "postCode": "1207",
+  "districtId": 1,
+  "cityTownVillage": "Dhaka Kotwali",
+  "streetAddress": "12/A Dhanmondi R/A",
+  "apartment": "Flat 4B",
   "isDefault": true
 }
 ```
@@ -163,7 +225,7 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
 | recipientName   | string  | No       | Recipient name (max 100 chars)                    |
 | telephone       | string  | No       | Phone number (max 20 chars)                       |
 | postCode        | string  | Yes      | Postal code                                       |
-| prefectureId    | number  | Yes      | Prefecture ID (from prefectures list)             |
+| districtId      | number  | Yes      | District ID (from districts list)                 |
 | cityTownVillage | string  | Yes      | City/Town/Village                                 |
 | streetAddress   | string  | Yes      | Street address                                    |
 | apartment       | string  | No       | Apartment/building (max 100 chars)                |
@@ -180,17 +242,17 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
     "id": "cm7x1a1...",
     "type": "HOME",
     "label": "My Home",
-    "postCode": "100-0001",
-    "prefectureId": 13,
-    "cityTownVillage": "Chiyoda-ku",
-    "streetAddress": "1-1-1 Chiyoda",
-    "apartment": "Tower A 1201",
+    "postCode": "1207",
+    "districtId": 1,
+    "cityTownVillage": "Dhaka Kotwali",
+    "streetAddress": "12/A Dhanmondi R/A",
+    "apartment": "Flat 4B",
     "isDefault": true,
-    "prefecture": {
-      "id": 13,
-      "code": "JP-13",
-      "nameEn": "Tokyo",
-      "nameBn": "টোকিও"
+    "district": {
+      "id": 1,
+      "code": "BD-DHA",
+      "nameEn": "Dhaka",
+      "nameBn": "ঢাকা"
     }
   }
 }
@@ -198,7 +260,7 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
 
 ---
 
-## 5. Update Address
+## 7. Update Address
 
 **PATCH** `/addresses/my/:id`
 
@@ -213,7 +275,7 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
 ```json
 {
   "label": "Updated Label",
-  "telephone": "080-9876-5432",
+  "telephone": "01898765432",
   "isDefault": false
 }
 ```
@@ -228,13 +290,13 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
   "data": {
     "id": "cm7x1a1...",
     "label": "Updated Label",
-    "telephone": "080-9876-5432",
+    "telephone": "01898765432",
     "isDefault": false,
-    "prefecture": {
-      "id": 13,
-      "code": "JP-13",
-      "nameEn": "Tokyo",
-      "nameBn": "টোকিও"
+    "district": {
+      "id": 1,
+      "code": "BD-DHA",
+      "nameEn": "Dhaka",
+      "nameBn": "ঢাকা"
     }
   }
 }
@@ -242,7 +304,7 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
 
 ---
 
-## 6. Delete Address (Soft Delete)
+## 8. Delete Address (Soft Delete)
 
 **DELETE** `/addresses/my/:id`
 
@@ -265,7 +327,7 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
 
 ---
 
-## 7. Set Default Address
+## 9. Set Default Address
 
 **PATCH** `/addresses/my/:id/default`
 
@@ -285,11 +347,11 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
   "data": {
     "id": "cm7x1a1...",
     "isDefault": true,
-    "prefecture": {
-      "id": 13,
-      "code": "JP-13",
-      "nameEn": "Tokyo",
-      "nameBn": "টোকিও"
+    "district": {
+      "id": 1,
+      "code": "BD-DHA",
+      "nameEn": "Dhaka",
+      "nameBn": "ঢাকা"
     }
   }
 }
@@ -298,5 +360,5 @@ Address CRUD endpoints require a valid session cookie (`better.auth.session_toke
 ### Notes
 
 - Setting a new default automatically unsets the previous default.
-- Prefecture listing is public (no auth required).
+- Division & district listing is public (no auth required).
 - Addresses are soft-deleted (`isDeleted: true`).

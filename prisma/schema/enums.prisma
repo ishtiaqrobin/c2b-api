@@ -105,6 +105,11 @@ enum OrderStatus {
     CANCELLED // Lifecycle terminated early before asset possession transfer occurred
 }
 
+enum BankAccountType {
+    SAVINGS // Standard personal or business savings account
+    CURRENT // Business checking or current account for daily operations
+}
+
 enum PaymentStatus {
     PENDING // Transaction routing initiated but waiting for ledger confirmation
     PROCESSING // Bank clearing house or MFS engine bulk payout operation active
@@ -157,4 +162,14 @@ enum StockTransferStatus {
     IN_TRANSIT // Shipped, en route to the destination store
     RECEIVED // Confirmed received at the destination store
     CANCELLED // Transfer cancelled before completion
+}
+
+enum OccupationType {
+    COMPANY_EMPLOYEE // Full time or part time employment with a registered company
+    SELF_EMPLOYED // Freelance or independent business owner without formal company registration
+    PART_TIME_JOB // Casual or temporary employment with a registered company
+    STUDENT // Enrolled in an educational institution pursuing academic studies
+    UNEMPLOYED // Individuals without a job or source of income
+    HOUSEWIFE // Individuals primarily managing household responsibilities
+    OTHERS // Individuals with occupations not listed above
 }

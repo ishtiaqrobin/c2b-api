@@ -5,14 +5,14 @@ import AppError from "../../errorHelpers/AppError";
 import {
   IAddressCreate,
   IAddressUpdate,
-  IPrefectureListQuery,
+  IDistrictListQuery,
 } from "./address.interface";
 
 const getMyAddresses = async (userId: string) => {
   return prisma.address.findMany({
     where: { userId, isDeleted: false },
     include: {
-      prefecture: {
+      district: {
         select: { id: true, code: true, nameEn: true, nameBn: true },
       },
     },
@@ -24,7 +24,7 @@ const getAddressById = async (id: string, userId: string) => {
   const address = await prisma.address.findFirst({
     where: { id, userId, isDeleted: false },
     include: {
-      prefecture: {
+      district: {
         select: { id: true, code: true, nameEn: true, nameBn: true },
       },
     },
@@ -38,12 +38,12 @@ const getAddressById = async (id: string, userId: string) => {
 };
 
 const createAddress = async (userId: string, payload: IAddressCreate) => {
-  // Verify prefecture exists
-  const prefecture = await prisma.prefecture.findUnique({
-    where: { id: payload.prefectureId },
+  // Verify district exists
+  const district = await prisma.district.findUnique({
+    where: { id: payload.districtId },
   });
-  if (!prefecture) {
-    throw new AppError(status.BAD_REQUEST, "Invalid prefecture ID");
+  if (!district) {
+    throw new AppError(status.BAD_REQUEST, "Invalid district ID");
   }
 
   // If setting as default, unset other defaults
@@ -62,14 +62,14 @@ const createAddress = async (userId: string, payload: IAddressCreate) => {
       recipientName: payload.recipientName,
       telephone: payload.telephone,
       postCode: payload.postCode,
-      prefectureId: payload.prefectureId,
+      districtId: payload.districtId,
       cityTownVillage: payload.cityTownVillage,
       streetAddress: payload.streetAddress,
       apartment: payload.apartment,
       isDefault: payload.isDefault ?? false,
     },
     include: {
-      prefecture: {
+      district: {
         select: { id: true, code: true, nameEn: true, nameBn: true },
       },
     },
@@ -91,13 +91,13 @@ const updateAddress = async (
     throw new AppError(status.NOT_FOUND, "Address not found");
   }
 
-  // Verify prefecture if provided
-  if (payload.prefectureId) {
-    const prefecture = await prisma.prefecture.findUnique({
-      where: { id: payload.prefectureId },
+  // Verify district if provided
+  if (payload.districtId) {
+    const district = await prisma.district.findUnique({
+      where: { id: payload.districtId },
     });
-    if (!prefecture) {
-      throw new AppError(status.BAD_REQUEST, "Invalid prefecture ID");
+    if (!district) {
+      throw new AppError(status.BAD_REQUEST, "Invalid district ID");
     }
   }
 
@@ -121,8 +121,8 @@ const updateAddress = async (
         ? { telephone: payload.telephone }
         : {}),
       ...(payload.postCode !== undefined ? { postCode: payload.postCode } : {}),
-      ...(payload.prefectureId !== undefined
-        ? { prefectureId: payload.prefectureId }
+      ...(payload.districtId !== undefined
+        ? { districtId: payload.districtId }
         : {}),
       ...(payload.cityTownVillage !== undefined
         ? { cityTownVillage: payload.cityTownVillage }
@@ -138,7 +138,7 @@ const updateAddress = async (
         : {}),
     },
     include: {
-      prefecture: {
+      district: {
         select: { id: true, code: true, nameEn: true, nameBn: true },
       },
     },
@@ -184,7 +184,7 @@ const setDefaultAddress = async (id: string, userId: string) => {
     where: { id },
     data: { isDefault: true },
     include: {
-      prefecture: {
+      district: {
         select: { id: true, code: true, nameEn: true, nameBn: true },
       },
     },
@@ -193,13 +193,13 @@ const setDefaultAddress = async (id: string, userId: string) => {
   return updated;
 };
 
-// Prefecture listing
-const listPrefectures = async (query: IPrefectureListQuery) => {
+// District & Division listing
+const listDistricts = async (query: IDistrictListQuery) => {
   const page = Math.max(1, Number(query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(query.limit) || 50));
   const skip = (page - 1) * limit;
 
-  const where: Prisma.PrefectureWhereInput = {
+  const where: Prisma.DistrictWhereInput = {
     ...(query.search
       ? {
           OR: [
@@ -212,19 +212,32 @@ const listPrefectures = async (query: IPrefectureListQuery) => {
   };
 
   const [data, total] = await Promise.all([
-    prisma.prefecture.findMany({
+    prisma.district.findMany({
       where,
       skip,
       take: limit,
       orderBy: { id: "asc" },
     }),
-    prisma.prefecture.count({ where }),
+    prisma.district.count({ where }),
   ]);
 
   return {
     data,
     meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
   };
+};
+
+const listDivisions = async () => {
+  return prisma.division.findMany({
+    orderBy: { id: "asc" },
+  });
+};
+
+const getDistrictsByDivision = async (divisionId: number) => {
+  return prisma.district.findMany({
+    where: { divisionId },
+    orderBy: { id: "asc" },
+  });
 };
 
 export const AddressService = {
@@ -234,5 +247,7 @@ export const AddressService = {
   updateAddress,
   deleteAddress,
   setDefaultAddress,
-  listPrefectures,
+  listDistricts,
+  listDivisions,
+  getDistrictsByDivision,
 };
