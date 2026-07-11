@@ -28,6 +28,17 @@ const listNews = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getLatestNews = catchAsync(async (req: Request, res: Response) => {
+  const locale = req.query.locale as string | undefined;
+  const result = await NewsService.getLatestNews(locale as Locale | undefined);
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "News retrieved",
+    data: result,
+  });
+});
+
 // Public: get single news
 const getNewsById = catchAsync(async (req: Request, res: Response) => {
   const locale = req.query.locale as string | undefined;
@@ -85,4 +96,5 @@ export const NewsController = {
   createNews,
   updateNews,
   deleteNews,
+  getLatestNews,
 };

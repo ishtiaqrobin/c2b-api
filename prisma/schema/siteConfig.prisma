@@ -1,0 +1,25 @@
+model SiteConfig {
+    id              String   @id @default(cuid())
+    siteTitle       String?
+    tagline         String?
+    linkedinUrl     String?
+    githubUrl       String?
+    facebookUrl     String?
+    instagramUrl    String?
+    twitterUrl      String?
+    youtubeUrl      String?
+    resumeLink      String?
+    contactEmail    String?
+    contactPhone    String?
+    whatsappNumber  String?
+    address         String?
+    availability    String?
+    experience      String?
+    metaDescription String?
+    metaKeywords    String?
+    latestNewsCount Int      @default(10)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    @@map("site_config")
+}

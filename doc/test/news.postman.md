@@ -8,7 +8,7 @@ http://localhost:5000/api/v1
 
 ## Authentication
 
-Public endpoints (list, get) do not require authentication. Admin endpoints require a valid session cookie and `news.manage` permission.
+Public endpoints (list, latest, get) do not require authentication. Admin endpoints require a valid session cookie and `news.manage` permission.
 
 ---
 
@@ -62,7 +62,52 @@ Public endpoints (list, get) do not require authentication. Admin endpoints requ
 
 ---
 
-## 2. Get Single News (Public)
+## 2. Get Latest News (Public)
+
+**GET** `/news/latest`
+
+### Query Parameters
+
+| Parameter | Type   | Required | Description            |
+| --------- | ------ | -------- | ---------------------- |
+| locale    | string | No       | `EN` (default) or `BN` |
+
+### Response (200)
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "News retrieved",
+  "data": [
+    {
+      "id": "cm7x1a1...",
+      "publishedAt": "2026-06-21T10:00:00.000Z",
+      "isActive": true,
+      "isDeleted": false,
+      "deletedAt": null,
+      "createdAt": "2026-06-21T10:00:00.000Z",
+      "updatedAt": "2026-06-21T10:00:00.000Z",
+      "translations": [
+        {
+          "locale": "EN",
+          "title": "New Buyback Program Launched",
+          "body": "We are excited to announce..."
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Notes
+
+- Returns the latest active news items (not deleted, not inactive).
+- The number of items returned can be configured via the Settings API (`PATCH /settings` with `latestNewsCount` field, default: 10).
+
+---
+
+## 3. Get Single News (Public)
 
 **GET** `/news/:id`
 
@@ -111,7 +156,7 @@ Public endpoints (list, get) do not require authentication. Admin endpoints requ
 
 ---
 
-## 3. Create News (Admin)
+## 4. Create News (Admin)
 
 **POST** `/news`
 
@@ -181,7 +226,7 @@ Public endpoints (list, get) do not require authentication. Admin endpoints requ
 
 ---
 
-## 4. Update News (Admin)
+## 5. Update News (Admin)
 
 **PATCH** `/news/:id`
 
@@ -244,7 +289,7 @@ Public endpoints (list, get) do not require authentication. Admin endpoints requ
 
 ---
 
-## 5. Delete News (Admin — Soft Delete)
+## 6. Delete News (Admin — Soft Delete)
 
 **DELETE** `/news/:id`
 

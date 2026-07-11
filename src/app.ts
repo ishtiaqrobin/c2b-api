@@ -80,7 +80,7 @@ app.use("/api/auth", (req, _res, next) => {
 });
 
 // Auth rate limiter (strict — applied before better-auth handler)
-app.use("/api/auth", authRateLimiter);
+// app.use("/api/auth", authRateLimiter);
 
 // better-auth handler
 app.use("/api/auth", toNodeHandler(auth));

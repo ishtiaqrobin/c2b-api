@@ -13,6 +13,7 @@ import { NotificationRoutes } from "../modules/notification/notification.route";
 import { AddressRoutes } from "../modules/address/address.route";
 import { NewsRoutes } from "../modules/news/news.route";
 import { BannerRoutes } from "../modules/banner/banner.route";
+import { SettingsRoutes } from "../modules/settings/settings.route";
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use("/notifications", NotificationRoutes);
 router.use("/addresses", AddressRoutes);
 router.use("/news", NewsRoutes);
 router.use("/banners", BannerRoutes);
+router.use("/settings", SettingsRoutes);
 
 export const IndexRoutes = router;

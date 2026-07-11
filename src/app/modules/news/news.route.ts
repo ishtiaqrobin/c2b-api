@@ -18,6 +18,9 @@ router.get(
   NewsController.listNews,
 );
 
+// Public: get latest news
+router.get("/latest", NewsController.getLatestNews);
+
 // Public: get single news
 router.get("/:id", NewsController.getNewsById);
 

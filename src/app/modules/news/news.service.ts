@@ -56,6 +56,28 @@ const listNews = async (query: INewsListQuery) => {
   };
 };
 
+const getLatestNews = async (locale?: Locale) => {
+  // Get configured count from SiteConfig (default: 10)
+  const config = await prisma.siteConfig.findFirst();
+  const takeCount = config?.latestNewsCount ?? 10;
+
+  const latestNews = await prisma.news.findMany({
+    where: { isDeleted: false, isActive: true },
+    orderBy: { publishedAt: "desc" },
+    take: takeCount,
+    include: {
+      translations: locale
+        ? {
+            where: { locale },
+            select: { locale: true, title: true, body: true },
+          }
+        : true,
+    },
+  });
+
+  return latestNews;
+};
+
 const getNewsById = async (id: string, locale?: Locale) => {
   const news = await prisma.news.findFirst({
     where: { id, isDeleted: false },
@@ -163,4 +185,5 @@ export const NewsService = {
   createNews,
   updateNews,
   deleteNews,
+  getLatestNews,
 };

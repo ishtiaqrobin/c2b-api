@@ -12,6 +12,7 @@ export const PERMISSIONS = {
   // CMS
   BANNER_MANAGE: "banner.manage",
   NEWS_MANAGE: "news.manage",
+  SETTINGS_MANAGE: "settings.manage",
 
   // Operations
   STORE_MANAGE: "store.manage",
@@ -71,6 +72,11 @@ export const PERMISSION_DEFINITIONS: {
     description: "Manage banners",
   },
   { key: PERMISSIONS.NEWS_MANAGE, group: "CMS", description: "Manage news" },
+  {
+    key: PERMISSIONS.SETTINGS_MANAGE,
+    group: "CMS",
+    description: "Manage site settings",
+  },
 
   {
     key: PERMISSIONS.STORE_MANAGE,
@@ -170,6 +176,7 @@ export const DEFAULT_ROLES: {
       PERMISSIONS.PRICE_MANAGE,
       PERMISSIONS.BANNER_MANAGE,
       PERMISSIONS.NEWS_MANAGE,
+      PERMISSIONS.SETTINGS_MANAGE,
     ],
   },
   {
