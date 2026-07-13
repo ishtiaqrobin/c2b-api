@@ -16,7 +16,7 @@ Returns the full nested category hierarchy (only active, non-deleted categories)
 
 ## 9. List Categories (Public)
 
-**GET** `/api/v1/categories?page=1&limit=20&search=electronics&isPopular=true&locale=EN`
+**GET** `/api/v1/categories?page=1&limit=20&search=electronics&isPopular=true`
 
 **Query params (all optional):**
 
@@ -24,11 +24,10 @@ Returns the full nested category hierarchy (only active, non-deleted categories)
 | ----------- | -------------------- | ------------------------------------ |
 | `page`      | number               | Default: 1                           |
 | `limit`     | number               | Default: 20, max: 100                |
-| `search`    | string               | Searches slug + translation names    |
+| `search`    | string               | Searches slug + name                 |
 | `parentId`  | string               | Filter by parent (`"null"` for root) |
 | `isPopular` | `"true"` / `"false"` |                                      |
 | `isActive`  | `"true"` / `"false"` |                                      |
-| `locale`    | `"EN"` / `"BN"`      | Filter translations                  |
 
 ---
 
@@ -50,31 +49,17 @@ Returns the full nested category hierarchy (only active, non-deleted categories)
 
 **Headers:** Cookie `better-auth.session_token=<token>`
 
-```json
-{
-  "slug": "electronics",
-  "isPopular": true,
-  "sortOrder": 1,
-  "isActive": true,
-  "translations": [
-    { "locale": "EN", "name": "Electronics" },
-    { "locale": "BN", "name": "ইলেকট্রনিক্স" }
-  ]
-}
-```
+**Content-Type:** `multipart/form-data`
 
-### With parent
-
-```json
-{
-  "slug": "smartphones",
-  "parentId": "<parent-category-id>",
-  "translations": [
-    { "locale": "EN", "name": "Smartphones" },
-    { "locale": "BN", "name": "স্মার্টফোন" }
-  ]
-}
-```
+| Field       | Type                | Required | Description                               |
+| ----------- | ------------------- | -------- | ----------------------------------------- |
+| `slug`      | string              | Yes      | Unique slug                               |
+| `name`      | string              | Yes      | Display name                              |
+| `image`     | file                | No       | Category image (uploaded to Cloudinary)   |
+| `parentId`  | string              | No       | Parent category ID (null for root)        |
+| `isPopular` | `"true"` / `"false"` | No      | Default: `false`                          |
+| `sortOrder` | number              | No       | Default: `0`                              |
+| `isActive`  | `"true"` / `"false"` | No      | Default: `true`                           |
 
 ---
 
@@ -82,25 +67,27 @@ Returns the full nested category hierarchy (only active, non-deleted categories)
 
 **PATCH** `/api/v1/categories/:id`
 
-```json
-{
-  "slug": "electronics-updated",
-  "isPopular": false,
-  "sortOrder": 2,
-  "translations": [
-    { "locale": "EN", "name": "Electronics & Gadgets" },
-    { "locale": "BN", "name": "ইলেকট্রনিক্স ও গ্যাজেটস" }
-  ]
-}
-```
+**Content-Type:** `multipart/form-data`
 
-> All fields optional. Translations are **replaced** entirely when provided.
+| Field       | Type                | Required | Description                                    |
+| ----------- | ------------------- | -------- | ---------------------------------------------- |
+| `slug`      | string              | No       | Unique slug                                    |
+| `name`      | string              | No       | Display name                                   |
+| `image`     | file                | No       | New category image (leave empty to keep current)|
+| `parentId`  | string              | No       | Parent category ID (null for root)             |
+| `isPopular` | `"true"` / `"false"` | No      |                                                |
+| `sortOrder` | number              | No       |                                                |
+| `isActive`  | `"true"` / `"false"` | No      |                                                |
+
+> All fields optional. Omit `image` to keep the current image.
 
 ---
 
 ## 14. Delete Category (Admin) — Soft Delete
 
 **DELETE** `/api/v1/categories/:id`
+
+Also deletes the associated Cloudinary image if present.
 
 ---
 
@@ -111,10 +98,7 @@ Returns the full nested category hierarchy (only active, non-deleted categories)
 ```json
 {
   "categoryId": "<category-id>",
-  "translations": [
-    { "locale": "EN", "body": "Please read before purchasing electronics." },
-    { "locale": "BN", "body": "ইলেকট্রনিক্স কেনার আগে অনুগ্রহ করে পড়ুন।" }
-  ]
+  "body": "Please read before purchasing electronics."
 }
 ```
 
@@ -132,10 +116,7 @@ Returns the full nested category hierarchy (only active, non-deleted categories)
 
 ```json
 {
-  "translations": [
-    { "locale": "EN", "body": "Updated notice text." },
-    { "locale": "BN", "body": "আপডেট করা নোটিশ।" }
-  ]
+  "body": "Updated notice text."
 }
 ```
 

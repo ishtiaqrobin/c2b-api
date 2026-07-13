@@ -6,6 +6,7 @@ import {
 } from "../../middleware/validateRequest";
 import { checkAuth } from "../../middleware/checkAuth";
 import { requirePermission } from "../../middleware/requirePermission";
+import { multerUpload } from "../../config/multer.config";
 import {
   createCategoryZodSchema,
   updateCategoryZodSchema,
@@ -31,6 +32,29 @@ router.get(
 // Get by slug
 router.get("/slug/:slug", CategoryController.getCategoryBySlug);
 
+// ==================== TRASH (admin) ====================
+
+router.get(
+  "/trash",
+  checkAuth,
+  requirePermission("category.manage"),
+  CategoryController.listDeletedCategories,
+);
+
+router.post(
+  "/:id/restore",
+  checkAuth,
+  requirePermission("category.manage"),
+  CategoryController.restoreCategory,
+);
+
+router.delete(
+  "/:id/permanent",
+  checkAuth,
+  requirePermission("category.manage"),
+  CategoryController.permanentlyDeleteCategory,
+);
+
 // Get by ID
 router.get("/:id", CategoryController.getCategoryById);
 
@@ -41,6 +65,7 @@ router.post(
   "/",
   checkAuth,
   requirePermission("category.manage"),
+  multerUpload("categories").single("image"),
   validateRequest(createCategoryZodSchema),
   CategoryController.createCategory,
 );
@@ -50,6 +75,7 @@ router.patch(
   "/:id",
   checkAuth,
   requirePermission("category.manage"),
+  multerUpload("categories").single("image"),
   validateRequest(updateCategoryZodSchema),
   CategoryController.updateCategory,
 );

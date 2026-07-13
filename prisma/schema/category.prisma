@@ -1,11 +1,16 @@
 model Category {
-    id        String    @id @default(cuid())
-    slug      String    @unique
-    name      String
-    parentId  String?
-    isPopular Boolean   @default(false)
-    sortOrder Int       @default(0)
-    isActive  Boolean   @default(true)
+    id       String  @id @default(cuid())
+    slug     String  @unique
+    name     String
+    parentId String?
+
+    imageUrl      String? // dashboard-uploaded category/sub-category image
+    imagePublicId String? // Cloudinary public_id, deletion/replace-এর জন্য
+
+    isPopular Boolean @default(false)
+    sortOrder Int     @default(0)
+    isActive  Boolean @default(true)
+
     isDeleted Boolean   @default(false)
     deletedAt DateTime?
     createdAt DateTime  @default(now())
@@ -14,8 +19,8 @@ model Category {
     parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
     children Category[] @relation("CategoryTree")
 
-    products Product[]
-    banners  Banner[]
+    products    Product[]
+    banners     Banner[]
     checkNotice CategoryNotice?
 
     @@index([parentId])

@@ -3,11 +3,38 @@ import status from "http-status";
 import { catchAsync } from "../../shared/catchAsync";
 import { sendResponse } from "../../shared/sendResponse";
 import { CategoryService } from "./category.service";
+import AppError from "../../errorHelpers/AppError";
+
+const extractFileInfo = (req: Request) => {
+  const file = req.file as Express.Multer.File & {
+    path?: string;
+    filename?: string;
+    [key: string]: unknown;
+  };
+  const imageUrl =
+    (file.path as string) ||
+    ((file as Record<string, unknown>).location as string);
+  const imagePublicId =
+    (file.filename as string) ||
+    ((file as Record<string, unknown>).public_id as string) ||
+    null;
+  if (!imageUrl) {
+    throw new AppError(status.BAD_REQUEST, "File upload failed");
+  }
+  return { imageUrl, imagePublicId };
+};
 
 // ==================== CATEGORY ====================
 
 const createCategory = catchAsync(async (req: Request, res: Response) => {
-  const result = await CategoryService.createCategory(req.body);
+  let payload = { ...req.body };
+
+  if (req.file) {
+    const { imageUrl, imagePublicId } = extractFileInfo(req);
+    payload = { ...payload, imageUrl, imagePublicId };
+  }
+
+  const result = await CategoryService.createCategory(payload);
   sendResponse(res, {
     statusCode: status.CREATED,
     success: true,
@@ -51,9 +78,16 @@ const listCategories = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateCategory = catchAsync(async (req: Request, res: Response) => {
+  let payload = { ...req.body };
+
+  if (req.file) {
+    const { imageUrl, imagePublicId } = extractFileInfo(req);
+    payload = { ...payload, imageUrl, imagePublicId };
+  }
+
   const result = await CategoryService.updateCategory(
     req.params.id as string,
-    req.body,
+    payload,
   );
   sendResponse(res, {
     statusCode: status.OK,
@@ -72,6 +106,45 @@ const deleteCategory = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+const listDeletedCategories = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await CategoryService.listDeletedCategories();
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: "Deleted categories retrieved successfully",
+      data: result,
+    });
+  },
+);
+
+const restoreCategory = catchAsync(async (req: Request, res: Response) => {
+  const result = await CategoryService.restoreCategory(
+    req.params.id as string,
+    req.body?.slug,
+  );
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Category restored successfully",
+    data: result,
+  });
+});
+
+const permanentlyDeleteCategory = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await CategoryService.permanentlyDeleteCategory(
+      req.params.id as string,
+    );
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: "Category permanently deleted",
+      data: result,
+    });
+  },
+);
 
 // ==================== CATEGORY NOTICE ====================
 
@@ -148,4 +221,7 @@ export const CategoryController = {
   updateNotice,
   deleteNotice,
   getCategoryTree,
+  listDeletedCategories,
+  restoreCategory,
+  permanentlyDeleteCategory,
 };

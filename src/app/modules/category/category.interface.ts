@@ -3,6 +3,8 @@
 export interface ICategoryCreate {
   slug: string;
   parentId?: string | null;
+  imageUrl?: string;
+  imagePublicId?: string | null;
   isPopular?: boolean;
   sortOrder?: number;
   isActive?: boolean;
@@ -12,6 +14,8 @@ export interface ICategoryCreate {
 export interface ICategoryUpdate {
   slug?: string;
   parentId?: string | null;
+  imageUrl?: string;
+  imagePublicId?: string | null;
   isPopular?: boolean;
   sortOrder?: number;
   isActive?: boolean;
