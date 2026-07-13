@@ -6,6 +6,7 @@ import {
 } from "../../middleware/validateRequest";
 import { checkAuth } from "../../middleware/checkAuth";
 import { requirePermission } from "../../middleware/requirePermission";
+import { multerUpload } from "../../config/multer.config";
 import {
   createProductZodSchema,
   updateProductZodSchema,
@@ -50,6 +51,7 @@ router.post(
   "/",
   checkAuth,
   requirePermission("product.manage"),
+  multerUpload("products").single("image"),
   validateRequest(createProductZodSchema),
   ProductController.createProduct,
 );
@@ -58,6 +60,7 @@ router.patch(
   "/:id",
   checkAuth,
   requirePermission("product.manage"),
+  multerUpload("products").single("image"),
   validateRequest(updateProductZodSchema),
   ProductController.updateProduct,
 );

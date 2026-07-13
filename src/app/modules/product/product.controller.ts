@@ -11,10 +11,40 @@ const ensureUser = (req: Request) => {
   return req.user;
 };
 
+const extractFileInfo = (req: Request, required = false) => {
+  if (!req.file) {
+    if (required) {
+      throw new AppError(status.BAD_REQUEST, "Product image is required");
+    }
+    return { imageUrl: undefined, imagePublicId: undefined };
+  }
+
+  const file = req.file as Express.Multer.File & {
+    path?: string;
+    filename?: string;
+    [key: string]: unknown;
+  };
+
+  const imageUrl =
+    (file.path as string) ||
+    ((file as Record<string, unknown>).location as string);
+  const imagePublicId =
+    (file.filename as string) ||
+    ((file as Record<string, unknown>).public_id as string) ||
+    null;
+
+  return { imageUrl, imagePublicId };
+};
+
 // ==================== PRODUCT ====================
 
 const createProduct = catchAsync(async (req: Request, res: Response) => {
-  const result = await ProductService.createProduct(req.body);
+  ensureUser(req);
+  const { imageUrl, imagePublicId } = extractFileInfo(req, false);
+  const result = await ProductService.createProduct({
+    ...req.body,
+    ...(imageUrl ? { imageUrl, imagePublicId } : {}),
+  });
   sendResponse(res, {
     statusCode: status.CREATED,
     success: true,
@@ -57,8 +87,13 @@ const listProducts = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateProduct = catchAsync(async (req: Request, res: Response) => {
+  ensureUser(req);
   const id = req.params.id;
-  const result = await ProductService.updateProduct(id as string, req.body);
+  const { imageUrl, imagePublicId } = extractFileInfo(req, false);
+  const result = await ProductService.updateProduct(id as string, {
+    ...req.body,
+    ...(imageUrl !== undefined ? { imageUrl, imagePublicId } : {}),
+  });
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
