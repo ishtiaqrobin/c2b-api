@@ -41,9 +41,7 @@ const createProduct = async (payload: IProductCreate) => {
       imageUrl: payload.imageUrl,
       imagePublicId: payload.imagePublicId,
       isActive: payload.isActive ?? true,
-      translations: {
-        create: payload.translations,
-      },
+      name: payload.name,
       ...(payload.variants && {
         variants: {
           create: payload.variants.map((v) => ({
@@ -63,9 +61,7 @@ const createProduct = async (payload: IProductCreate) => {
                   amount: d.amount,
                   sortOrder: d.sortOrder ?? 0,
                   isActive: d.isActive ?? true,
-                  translations: {
-                    create: d.translations,
-                  },
+                  label: d.label,
                 })),
               },
             }),
@@ -74,10 +70,9 @@ const createProduct = async (payload: IProductCreate) => {
       }),
     },
     include: {
-      translations: true,
       variants: {
         include: {
-          deductions: { include: { translations: true } },
+          deductions: true,
         },
       },
     },
@@ -88,14 +83,12 @@ const getProductById = async (id: string) => {
   const product = await prisma.product.findUnique({
     where: { id, isDeleted: false },
     include: {
-      translations: true,
       category: { select: { id: true, slug: true } },
       variants: {
         where: { isDeleted: false },
         include: {
           deductions: {
             where: { isDeleted: false },
-            include: { translations: true },
           },
         },
       },
@@ -113,14 +106,12 @@ const getProductBySlug = async (slug: string) => {
   const product = await prisma.product.findUnique({
     where: { slug, isDeleted: false },
     include: {
-      translations: true,
       category: { select: { id: true, slug: true } },
       variants: {
         where: { isDeleted: false },
         include: {
           deductions: {
             where: { isDeleted: false },
-            include: { translations: true },
           },
         },
       },
@@ -149,13 +140,7 @@ const listProducts = async (query: IProductListQuery) => {
       ? {
           OR: [
             { slug: { contains: query.search, mode: "insensitive" } },
-            {
-              translations: {
-                some: {
-                  name: { contains: query.search, mode: "insensitive" },
-                },
-              },
-            },
+            { name: { contains: query.search, mode: "insensitive" } },
           ],
         }
       : {}),
@@ -168,7 +153,6 @@ const listProducts = async (query: IProductListQuery) => {
       take: limit,
       orderBy: { createdAt: "desc" },
       include: {
-        translations: query.locale ? { where: { locale: query.locale } } : true,
         category: { select: { id: true, slug: true } },
         _count: { select: { variants: true } },
       },
@@ -209,17 +193,6 @@ const updateProduct = async (id: string, payload: IProductUpdate) => {
   }
 
   return prisma.$transaction(async (tx) => {
-    if (payload.translations) {
-      await tx.productTranslation.deleteMany({ where: { productId: id } });
-      await tx.productTranslation.createMany({
-        data: payload.translations.map((t) => ({
-          productId: id,
-          locale: t.locale,
-          name: t.name,
-        })),
-      });
-    }
-
     // Delete old image from Cloudinary if image is being changed
     if (
       (payload.imageUrl !== undefined || payload.imagePublicId !== undefined) &&
@@ -239,19 +212,18 @@ const updateProduct = async (id: string, payload: IProductUpdate) => {
         ...(payload.imagePublicId !== undefined && {
           imagePublicId: payload.imagePublicId,
         }),
+        ...(payload.name !== undefined && { name: payload.name }),
         ...(payload.isActive !== undefined && {
           isActive: payload.isActive,
         }),
       },
       include: {
-        translations: true,
         category: { select: { id: true, slug: true } },
         variants: {
           where: { isDeleted: false },
           include: {
             deductions: {
               where: { isDeleted: false },
-              include: { translations: true },
             },
           },
         },
@@ -318,15 +290,13 @@ const createVariant = async (productId: string, payload: IVariantCreate) => {
             amount: d.amount,
             sortOrder: d.sortOrder ?? 0,
             isActive: d.isActive ?? true,
-            translations: {
-              create: d.translations,
-            },
+            label: d.label,
           })),
         },
       }),
     },
     include: {
-      deductions: { include: { translations: true } },
+      deductions: true,
     },
   });
 };
@@ -338,7 +308,6 @@ const getVariantById = async (id: string) => {
       product: { select: { id: true, slug: true } },
       deductions: {
         where: { isDeleted: false },
-        include: { translations: true },
       },
     },
   });
@@ -383,7 +352,6 @@ const listVariants = async (query: IVariantListQuery) => {
         product: { select: { id: true, slug: true } },
         deductions: {
           where: { isDeleted: false },
-          include: { translations: true },
         },
       },
     }),
@@ -431,7 +399,7 @@ const updateVariant = async (id: string, payload: IVariantUpdate) => {
       ...(payload.isActive !== undefined && { isActive: payload.isActive }),
     },
     include: {
-      deductions: { include: { translations: true } },
+      deductions: true,
     },
   });
 };
@@ -471,11 +439,8 @@ const createDeduction = async (
       amount: payload.amount,
       sortOrder: payload.sortOrder ?? 0,
       isActive: payload.isActive ?? true,
-      translations: {
-        create: payload.translations,
-      },
+      label: payload.label,
     },
-    include: { translations: true },
   });
 };
 
@@ -491,19 +456,6 @@ const updateDeduction = async (
   }
 
   return prisma.$transaction(async (tx) => {
-    if (payload.translations) {
-      await tx.variantDeductionTranslation.deleteMany({
-        where: { deductionId },
-      });
-      await tx.variantDeductionTranslation.createMany({
-        data: payload.translations.map((t) => ({
-          deductionId,
-          locale: t.locale,
-          label: t.label,
-        })),
-      });
-    }
-
     return tx.variantDeduction.update({
       where: { id: deductionId },
       data: {
@@ -517,8 +469,8 @@ const updateDeduction = async (
         ...(payload.isActive !== undefined && {
           isActive: payload.isActive,
         }),
+        ...(payload.label !== undefined && { label: payload.label }),
       },
-      include: { translations: true },
     });
   });
 };

@@ -37,7 +37,6 @@ export interface IOrderListQuery {
   storeId?: string;
   method?: BuybackMethod;
   search?: string; // searches orderNumber
-  locale?: string;
 }
 
 export interface IOrderStatusUpdate {

@@ -1,13 +1,12 @@
 import status from "http-status";
 import { Prisma } from "../../../generated/prisma/client";
-import { Locale } from "../../../generated/prisma/enums";
+
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
 import {
   INewsCreate,
   INewsUpdate,
   INewsListQuery,
-  INewsTranslation,
 } from "./news.interface";
 
 const listNews = async (query: INewsListQuery) => {
@@ -15,22 +14,13 @@ const listNews = async (query: INewsListQuery) => {
   const limit = Math.min(100, Math.max(1, Number(query.limit) || 20));
   const skip = (page - 1) * limit;
 
-  const locale = (query.locale as Locale) || Locale.EN;
-
   const where: Prisma.NewsWhereInput = {
     isDeleted: false,
     ...(query.isActive !== undefined
       ? { isActive: query.isActive === "true" }
       : {}),
     ...(query.search
-      ? {
-          translations: {
-            some: {
-              locale,
-              title: { contains: query.search, mode: "insensitive" },
-            },
-          },
-        }
+      ? { title: { contains: query.search, mode: "insensitive" } }
       : {}),
   };
 
@@ -40,12 +30,6 @@ const listNews = async (query: INewsListQuery) => {
       skip,
       take: limit,
       orderBy: { publishedAt: "desc" },
-      include: {
-        translations: {
-          where: { locale },
-          select: { locale: true, title: true, body: true },
-        },
-      },
     }),
     prisma.news.count({ where }),
   ]);
@@ -56,8 +40,7 @@ const listNews = async (query: INewsListQuery) => {
   };
 };
 
-const getLatestNews = async (locale?: Locale) => {
-  // Get configured count from SiteConfig (default: 10)
+const getLatestNews = async () => {
   const config = await prisma.siteConfig.findFirst();
   const takeCount = config?.latestNewsCount ?? 10;
 
@@ -65,30 +48,14 @@ const getLatestNews = async (locale?: Locale) => {
     where: { isDeleted: false, isActive: true },
     orderBy: { publishedAt: "desc" },
     take: takeCount,
-    include: {
-      translations: locale
-        ? {
-            where: { locale },
-            select: { locale: true, title: true, body: true },
-          }
-        : true,
-    },
   });
 
   return latestNews;
 };
 
-const getNewsById = async (id: string, locale?: Locale) => {
+const getNewsById = async (id: string) => {
   const news = await prisma.news.findFirst({
     where: { id, isDeleted: false },
-    include: {
-      translations: locale
-        ? {
-            where: { locale },
-            select: { locale: true, title: true, body: true },
-          }
-        : true,
-    },
   });
 
   if (!news) {
@@ -105,15 +72,9 @@ const createNews = async (payload: INewsCreate) => {
         ? new Date(payload.publishedAt)
         : new Date(),
       isActive: payload.isActive ?? true,
-      translations: {
-        create: payload.translations.map((t: INewsTranslation) => ({
-          locale: t.locale,
-          title: t.title,
-          body: t.body,
-        })),
-      },
+      title: payload.title,
+      body: payload.body,
     },
-    include: { translations: true },
   });
 
   return news;
@@ -128,7 +89,6 @@ const updateNews = async (id: string, payload: INewsUpdate) => {
     throw new AppError(status.NOT_FOUND, "News not found");
   }
 
-  // Update base fields
   const updated = await prisma.news.update({
     where: { id },
     data: {
@@ -136,29 +96,12 @@ const updateNews = async (id: string, payload: INewsUpdate) => {
         ? { publishedAt: new Date(payload.publishedAt) }
         : {}),
       ...(payload.isActive !== undefined ? { isActive: payload.isActive } : {}),
+      ...(payload.title !== undefined ? { title: payload.title } : {}),
+      ...(payload.body !== undefined ? { body: payload.body } : {}),
     },
   });
 
-  // Replace translations if provided
-  if (payload.translations) {
-    // Delete existing translations
-    await prisma.newsTranslation.deleteMany({ where: { newsId: id } });
-
-    // Create new translations
-    await prisma.newsTranslation.createMany({
-      data: payload.translations.map((t: INewsTranslation) => ({
-        newsId: id,
-        locale: t.locale,
-        title: t.title,
-        body: t.body,
-      })),
-    });
-  }
-
-  return prisma.news.findUnique({
-    where: { id },
-    include: { translations: true },
-  });
+  return updated;
 };
 
 const deleteNews = async (id: string) => {

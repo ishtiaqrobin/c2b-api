@@ -1,4 +1,4 @@
-import { Locale, ItemCondition } from "../../../generated/prisma/enums";
+import { ItemCondition } from "../../../generated/prisma/enums";
 
 // ---------- Product ----------
 
@@ -8,7 +8,7 @@ export interface IProductCreate {
   imageUrl?: string;
   imagePublicId?: string;
   isActive?: boolean;
-  translations: IProductTranslationInput[];
+  name: string;
   variants?: IVariantCreate[];
 }
 
@@ -18,12 +18,7 @@ export interface IProductUpdate {
   imageUrl?: string;
   imagePublicId?: string;
   isActive?: boolean;
-  translations?: IProductTranslationInput[];
-}
-
-export interface IProductTranslationInput {
-  locale: Locale;
-  name: string;
+  name?: string;
 }
 
 export interface IProductListQuery {
@@ -32,7 +27,6 @@ export interface IProductListQuery {
   search?: string;
   categoryId?: string;
   isActive?: string;
-  locale?: Locale;
 }
 
 // ---------- Product Variant ----------
@@ -78,7 +72,7 @@ export interface IDeductionCreate {
   amount: number;
   sortOrder?: number;
   isActive?: boolean;
-  translations: IDeductionTranslationInput[];
+  label: string;
 }
 
 export interface IDeductionUpdate {
@@ -86,12 +80,7 @@ export interface IDeductionUpdate {
   amount?: number;
   sortOrder?: number;
   isActive?: boolean;
-  translations?: IDeductionTranslationInput[];
-}
-
-export interface IDeductionTranslationInput {
-  locale: Locale;
-  label: string;
+  label?: string;
 }
 
 // ---------- Price History ----------

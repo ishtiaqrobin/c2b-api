@@ -72,12 +72,12 @@ app.use(
 );
 
 // Ensure Origin header is present for better-auth (Postman / curl sends none)
-app.use("/api/auth", (req, _res, next) => {
-  if (!req.headers.origin) {
-    req.headers.origin = env.BETTER_AUTH_URL;
-  }
-  next();
-});
+// app.use("/api/auth", (req, _res, next) => {
+//   if (!req.headers.origin) {
+//     req.headers.origin = env.BETTER_AUTH_URL;
+//   }
+//   next();
+// });
 
 // Auth rate limiter (strict — applied before better-auth handler)
 // app.use("/api/auth", authRateLimiter);

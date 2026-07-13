@@ -1,5 +1,3 @@
-import { Locale } from "../../../generated/prisma/enums";
-
 // ---------- Category ----------
 
 export interface ICategoryCreate {
@@ -8,7 +6,7 @@ export interface ICategoryCreate {
   isPopular?: boolean;
   sortOrder?: number;
   isActive?: boolean;
-  translations: ICategoryTranslationInput[];
+  name: string;
 }
 
 export interface ICategoryUpdate {
@@ -17,12 +15,7 @@ export interface ICategoryUpdate {
   isPopular?: boolean;
   sortOrder?: number;
   isActive?: boolean;
-  translations?: ICategoryTranslationInput[];
-}
-
-export interface ICategoryTranslationInput {
-  locale: Locale;
-  name: string;
+  name?: string;
 }
 
 export interface ICategoryListQuery {
@@ -32,21 +25,15 @@ export interface ICategoryListQuery {
   parentId?: string;
   isPopular?: string;
   isActive?: string;
-  locale?: Locale;
 }
 
 // ---------- Category Notice ----------
 
 export interface INoticeCreate {
   categoryId: string;
-  translations: INoticeTranslationInput[];
+  body: string;
 }
 
 export interface INoticeUpdate {
-  translations: INoticeTranslationInput[];
-}
-
-export interface INoticeTranslationInput {
-  locale: Locale;
   body: string;
 }

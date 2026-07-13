@@ -17,10 +17,9 @@ const createStore = async (payload: IStoreCreate) => {
   return prisma.store.create({
     data: {
       slug: payload.slug,
+      name: payload.name,
+      address: payload.address,
       isActive: payload.isActive ?? true,
-      translations: {
-        create: payload.translations,
-      },
       ...(payload.businessHours && {
         businessHours: {
           create: payload.businessHours,
@@ -28,7 +27,6 @@ const createStore = async (payload: IStoreCreate) => {
       }),
     },
     include: {
-      translations: true,
       businessHours: true,
     },
   });
@@ -38,7 +36,6 @@ const getStoreById = async (id: string) => {
   const store = await prisma.store.findUnique({
     where: { id, isDeleted: false },
     include: {
-      translations: true,
       businessHours: { orderBy: { dayOfWeek: "asc" } },
       _count: { select: { orders: true, userRoles: true } },
     },
@@ -55,7 +52,6 @@ const getStoreBySlug = async (slug: string) => {
   const store = await prisma.store.findUnique({
     where: { slug, isDeleted: false },
     include: {
-      translations: true,
       businessHours: { orderBy: { dayOfWeek: "asc" } },
       _count: { select: { orders: true, userRoles: true } },
     },
@@ -82,13 +78,7 @@ const listStores = async (query: IStoreListQuery) => {
       ? {
           OR: [
             { slug: { contains: query.search, mode: "insensitive" } },
-            {
-              translations: {
-                some: {
-                  name: { contains: query.search, mode: "insensitive" },
-                },
-              },
-            },
+            { name: { contains: query.search, mode: "insensitive" } },
           ],
         }
       : {}),
@@ -101,7 +91,6 @@ const listStores = async (query: IStoreListQuery) => {
       take: limit,
       orderBy: { createdAt: "desc" },
       include: {
-        translations: query.locale ? { where: { locale: query.locale } } : true,
         _count: { select: { orders: true, userRoles: true } },
       },
     }),
@@ -132,19 +121,6 @@ const updateStore = async (id: string, payload: IStoreUpdate) => {
   }
 
   return prisma.$transaction(async (tx) => {
-    // Replace translations if provided
-    if (payload.translations) {
-      await tx.storeTranslation.deleteMany({ where: { storeId: id } });
-      await tx.storeTranslation.createMany({
-        data: payload.translations.map((t) => ({
-          storeId: id,
-          locale: t.locale,
-          name: t.name,
-          address: t.address,
-        })),
-      });
-    }
-
     // Replace business hours if provided
     if (payload.businessHours) {
       await tx.storeBusinessHour.deleteMany({ where: { storeId: id } });
@@ -163,12 +139,13 @@ const updateStore = async (id: string, payload: IStoreUpdate) => {
       where: { id },
       data: {
         ...(payload.slug !== undefined && { slug: payload.slug }),
+        ...(payload.name !== undefined && { name: payload.name }),
+        ...(payload.address !== undefined && { address: payload.address }),
         ...(payload.isActive !== undefined && {
           isActive: payload.isActive,
         }),
       },
       include: {
-        translations: true,
         businessHours: { orderBy: { dayOfWeek: "asc" } },
         _count: { select: { orders: true, userRoles: true } },
       },

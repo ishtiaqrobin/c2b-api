@@ -1,13 +1,14 @@
 model Store {
     id        String    @id @default(cuid())
     slug      String    @unique
+    name      String
+    address   String?
     isActive  Boolean   @default(true)
     isDeleted Boolean   @default(false)
     deletedAt DateTime?
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
 
-    translations  StoreTranslation[]
     businessHours StoreBusinessHour[]
     orders        Order[]
     userRoles     UserRole[]
@@ -20,19 +21,6 @@ model Store {
     stockTransfersIn  StockTransfer[] @relation("StockTransferTo")
 
     @@map("store")
-}
-
-model StoreTranslation {
-    id      String  @id @default(cuid())
-    storeId String
-    locale  Locale
-    name    String
-    address String?
-
-    store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
-
-    @@unique([storeId, locale])
-    @@map("store_translation")
 }
 
 model StoreBusinessHour {

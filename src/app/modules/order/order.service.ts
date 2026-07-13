@@ -4,7 +4,6 @@ import {
   BuybackMethod,
   OrderStatus,
   ItemCondition,
-  Locale,
 } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
@@ -37,10 +36,9 @@ const createOrder = async (payload: IOrderCreate, userId: string) => {
   const variants = await prisma.productVariant.findMany({
     where: { id: { in: variantIds }, isDeleted: false, isActive: true },
     include: {
-      product: { include: { translations: true } },
+      product: true,
       deductions: {
         where: { isDeleted: false, isActive: true },
-        include: { translations: true },
       },
     },
   });
@@ -96,11 +94,11 @@ const createOrder = async (payload: IOrderCreate, userId: string) => {
       unitPriceSnapshot: unitPrice,
       lineTotal,
       productNameSnapshot:
-        variant.product.translations[0]?.name ?? "Unknown Product",
+        variant.product.name ?? "Unknown Product",
       deductions: {
         create: selectedDeductions.map((d) => ({
           deductionId: d.id,
-          labelSnapshot: d.translations[0]?.label ?? d.condition,
+          labelSnapshot: d.label ?? d.condition,
           amountSnapshot: d.amount,
         })),
       },
@@ -237,13 +235,7 @@ const listOrders = async (query: IOrderListQuery, userId?: string) => {
             },
           },
         },
-        store: {
-          include: {
-            translations: query.locale
-              ? { where: { locale: query.locale as Locale } }
-              : true,
-          },
-        },
+        store: true,
         _count: { select: { items: true } },
       },
     }),

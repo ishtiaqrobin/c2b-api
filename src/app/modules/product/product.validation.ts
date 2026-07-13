@@ -1,26 +1,14 @@
 import { z } from "zod";
-import { Locale, ItemCondition } from "../../../generated/prisma/enums";
+import { ItemCondition } from "../../../generated/prisma/enums";
 
 // ---------- Product ----------
-
-const productTranslationSchema = z.object({
-  locale: z.enum([Locale.EN, Locale.BN]),
-  name: z.string().min(1, "Product name is required").max(300),
-});
-
-const deductionTranslationSchema = z.object({
-  locale: z.enum([Locale.EN, Locale.BN]),
-  label: z.string().min(1, "Label is required").max(200),
-});
 
 const deductionSchema = z.object({
   condition: z.enum([ItemCondition.NEW, ItemCondition.USED]),
   amount: z.number().nonnegative("Amount must be non-negative"),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
-  translations: z
-    .array(deductionTranslationSchema)
-    .min(1, "At least one translation is required"),
+  label: z.string().min(1, "Label is required").max(200),
 });
 
 const variantSchema = z.object({
@@ -42,9 +30,7 @@ export const createProductZodSchema = z.object({
   imageUrl: z.string().url().optional(),
   imagePublicId: z.string().optional(),
   isActive: z.boolean().optional(),
-  translations: z
-    .array(productTranslationSchema)
-    .min(1, "At least one translation is required"),
+  name: z.string().min(1, "Product name is required").max(300),
   variants: z.array(variantSchema).optional(),
 });
 
@@ -54,7 +40,7 @@ export const updateProductZodSchema = z.object({
   imageUrl: z.string().url().optional(),
   imagePublicId: z.string().optional(),
   isActive: z.boolean().optional(),
-  translations: z.array(productTranslationSchema).optional(),
+  name: z.string().min(1).max(300).optional(),
 });
 
 export const listProductQueryZodSchema = z.object({
@@ -63,7 +49,6 @@ export const listProductQueryZodSchema = z.object({
   search: z.string().optional(),
   categoryId: z.string().optional(),
   isActive: z.string().optional(),
-  locale: z.enum([Locale.EN, Locale.BN]).optional(),
 });
 
 // ---------- Variant ----------
@@ -98,9 +83,7 @@ export const createDeductionZodSchema = z.object({
   amount: z.number().nonnegative("Amount must be non-negative"),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
-  translations: z
-    .array(deductionTranslationSchema)
-    .min(1, "At least one translation is required"),
+  label: z.string().min(1, "Label is required").max(200),
 });
 
 export const updateDeductionZodSchema = z.object({
@@ -108,7 +91,7 @@ export const updateDeductionZodSchema = z.object({
   amount: z.number().nonnegative().optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
-  translations: z.array(deductionTranslationSchema).optional(),
+  label: z.string().min(1).max(200).optional(),
 });
 
 // ---------- Price Update ----------

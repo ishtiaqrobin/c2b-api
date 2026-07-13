@@ -1,25 +1,19 @@
-import { Locale } from "../../../generated/prisma/enums";
-
 // ---------- Store ----------
 
 export interface IStoreCreate {
   slug: string;
+  name: string;
+  address?: string;
   isActive?: boolean;
-  translations: IStoreTranslationInput[];
   businessHours?: IBusinessHourInput[];
 }
 
 export interface IStoreUpdate {
   slug?: string;
-  isActive?: boolean;
-  translations?: IStoreTranslationInput[];
-  businessHours?: IBusinessHourInput[];
-}
-
-export interface IStoreTranslationInput {
-  locale: Locale;
-  name: string;
+  name?: string;
   address?: string;
+  isActive?: boolean;
+  businessHours?: IBusinessHourInput[];
 }
 
 export interface IBusinessHourInput {
@@ -34,5 +28,5 @@ export interface IStoreListQuery {
   limit?: string;
   search?: string;
   isActive?: string;
-  locale?: Locale;
+
 }

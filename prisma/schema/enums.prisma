@@ -1,8 +1,3 @@
-enum Locale {
-    EN // English language preference
-    BN // Bengali language preference
-}
-
 // User Status Enum
 enum UserStatus {
     ACTIVE

@@ -38,12 +38,9 @@ const createCategory = async (payload: ICategoryCreate) => {
       isPopular: payload.isPopular ?? false,
       sortOrder: payload.sortOrder ?? 0,
       isActive: payload.isActive ?? true,
-      translations: {
-        create: payload.translations,
-      },
+      name: payload.name,
     },
     include: {
-      translations: true,
       parent: { select: { id: true, slug: true } },
     },
   });
@@ -53,7 +50,6 @@ const getCategoryById = async (id: string) => {
   const category = await prisma.category.findUnique({
     where: { id, isDeleted: false },
     include: {
-      translations: true,
       parent: { select: { id: true, slug: true } },
       _count: { select: { children: true, products: true } },
     },
@@ -70,7 +66,6 @@ const getCategoryBySlug = async (slug: string) => {
   const category = await prisma.category.findUnique({
     where: { slug, isDeleted: false },
     include: {
-      translations: true,
       parent: { select: { id: true, slug: true } },
       _count: { select: { children: true, products: true } },
     },
@@ -105,13 +100,7 @@ const listCategories = async (query: ICategoryListQuery) => {
       ? {
           OR: [
             { slug: { contains: query.search, mode: "insensitive" } },
-            {
-              translations: {
-                some: {
-                  name: { contains: query.search, mode: "insensitive" },
-                },
-              },
-            },
+            { name: { contains: query.search, mode: "insensitive" } },
           ],
         }
       : {}),
@@ -124,7 +113,6 @@ const listCategories = async (query: ICategoryListQuery) => {
       take: limit,
       orderBy: { sortOrder: "asc" },
       include: {
-        translations: query.locale ? { where: { locale: query.locale } } : true,
         parent: { select: { id: true, slug: true } },
         _count: { select: { children: true, products: true } },
       },
@@ -173,44 +161,28 @@ const updateCategory = async (id: string, payload: ICategoryUpdate) => {
     }
   }
 
-  return prisma.$transaction(async (tx) => {
-    // If translations are provided, replace them
-    if (payload.translations) {
-      await tx.categoryTranslation.deleteMany({ where: { categoryId: id } });
-      await tx.categoryTranslation.createMany({
-        data: payload.translations.map((t) => ({
-          categoryId: id,
-          locale: t.locale,
-          name: t.name,
-        })),
-      });
-    }
-
-    const updated = await tx.category.update({
-      where: { id },
-      data: {
-        ...(payload.slug !== undefined && { slug: payload.slug }),
-        ...(payload.parentId !== undefined && {
-          parentId: payload.parentId,
-        }),
-        ...(payload.isPopular !== undefined && {
-          isPopular: payload.isPopular,
-        }),
-        ...(payload.sortOrder !== undefined && {
-          sortOrder: payload.sortOrder,
-        }),
-        ...(payload.isActive !== undefined && {
-          isActive: payload.isActive,
-        }),
-      },
-      include: {
-        translations: true,
-        parent: { select: { id: true, slug: true } },
-        _count: { select: { children: true, products: true } },
-      },
-    });
-
-    return updated;
+  return prisma.category.update({
+    where: { id },
+    data: {
+      ...(payload.slug !== undefined && { slug: payload.slug }),
+      ...(payload.parentId !== undefined && {
+        parentId: payload.parentId,
+      }),
+      ...(payload.isPopular !== undefined && {
+        isPopular: payload.isPopular,
+      }),
+      ...(payload.sortOrder !== undefined && {
+        sortOrder: payload.sortOrder,
+      }),
+      ...(payload.isActive !== undefined && {
+        isActive: payload.isActive,
+      }),
+      ...(payload.name !== undefined && { name: payload.name }),
+    },
+    include: {
+      parent: { select: { id: true, slug: true } },
+      _count: { select: { children: true, products: true } },
+    },
   });
 };
 
@@ -253,18 +225,14 @@ const createNotice = async (payload: INoticeCreate) => {
   return prisma.categoryNotice.create({
     data: {
       categoryId: payload.categoryId,
-      translations: {
-        create: payload.translations,
-      },
+      body: payload.body,
     },
-    include: { translations: true },
   });
 };
 
 const getNoticeByCategoryId = async (categoryId: string) => {
   const notice = await prisma.categoryNotice.findUnique({
     where: { categoryId },
-    include: { translations: true },
   });
 
   if (!notice) {
@@ -282,23 +250,9 @@ const updateNotice = async (categoryId: string, payload: INoticeUpdate) => {
     throw new AppError(status.NOT_FOUND, "Notice not found for this category");
   }
 
-  return prisma.$transaction(async (tx) => {
-    // Replace all translations
-    await tx.categoryNoticeTranslation.deleteMany({
-      where: { noticeId: existing.id },
-    });
-    await tx.categoryNoticeTranslation.createMany({
-      data: payload.translations.map((t) => ({
-        noticeId: existing.id,
-        locale: t.locale,
-        body: t.body,
-      })),
-    });
-
-    return tx.categoryNotice.findUnique({
-      where: { categoryId },
-      include: { translations: true },
-    });
+  return prisma.categoryNotice.update({
+    where: { categoryId },
+    data: { body: payload.body },
   });
 };
 
@@ -321,7 +275,6 @@ const getCategoryTree = async () => {
     where: { isDeleted: false, isActive: true },
     orderBy: { sortOrder: "asc" },
     include: {
-      translations: true,
       _count: { select: { children: true, products: true } },
     },
   });
