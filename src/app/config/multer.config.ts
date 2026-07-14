@@ -8,6 +8,7 @@ import { cloudinaryUpload } from "./cloudinary.config";
 const MODULE_FOLDER_MAP: Record<string, string> = {
   products: "products",
   banners: "banners",
+  buyback_features: "buyback_features",
   ekyc: "ekyc",
   users: "users",
   stores: "stores",

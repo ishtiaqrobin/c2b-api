@@ -1,0 +1,13 @@
+model BuybackFeature {
+    id            String   @id @default(cuid())
+    title         String
+    description   String
+    imageUrl      String
+    imagePublicId String?
+    sortOrder     Int      @default(0)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("buyback_feature")
+}
