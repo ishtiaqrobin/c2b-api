@@ -1,20 +1,20 @@
 model Product {
-    id            String    @id @default(cuid())
-    slug          String    @unique
-    name          String
-    categoryId    String
+    id         String @id @default(cuid())
+    slug       String @unique
+    name       String
+    categoryId String
 
     imageUrl      String?
     imagePublicId String?
-    updateDate    DateTime  @default(now())
-    
-    isActive      Boolean   @default(true)
-    isDeleted     Boolean   @default(false)
-    deletedAt     DateTime?
-    createdAt     DateTime  @default(now())
-    updatedAt     DateTime  @updatedAt
+    updateDate    DateTime @default(now())
 
-    category Category           @relation(fields: [categoryId], references: [id])
+    isActive  Boolean   @default(true)
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    category Category         @relation(fields: [categoryId], references: [id])
     variants ProductVariant[]
 
     @@index([categoryId])
@@ -29,10 +29,13 @@ model ProductVariant {
     storage String?
     color   String?
 
+    imageUrl      String? // color-specific photo; falls back to Product.imageUrl if empty
+    imagePublicId String?
+
     // Global buyback prices (live reference for cart)
     newPrice  Decimal? @db.Decimal(12, 2)
     usedPrice Decimal? @db.Decimal(12, 2)
-    currency  String   @default("JPY")
+    currency  String   @default("BDT")
 
     // Purchase limits (null = unlimited)
     maxQuantityPerOrder Int?
@@ -70,7 +73,7 @@ model VariantDeduction {
     createdAt DateTime      @default(now())
     updatedAt DateTime      @updatedAt
 
-    variant             ProductVariant                @relation(fields: [variantId], references: [id], onDelete: Cascade)
+    variant             ProductVariant       @relation(fields: [variantId], references: [id], onDelete: Cascade)
     cartItemSelections  CartItemDeduction[]
     orderItemSelections OrderItemDeduction[]
 

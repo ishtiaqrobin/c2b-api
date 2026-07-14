@@ -15,6 +15,8 @@ const variantSchema = z.object({
   sku: z.string().max(50).optional(),
   storage: z.string().max(50).optional(),
   color: z.string().max(50).optional(),
+  imageUrl: z.string().url().optional(),
+  imagePublicId: z.string().optional(),
   newPrice: z.number().nonnegative().optional(),
   usedPrice: z.number().nonnegative().optional(),
   currency: z.string().max(10).optional(),
@@ -59,6 +61,8 @@ export const updateVariantZodSchema = z.object({
   sku: z.string().max(50).optional(),
   storage: z.string().max(50).optional(),
   color: z.string().max(50).optional(),
+  imageUrl: z.string().url().optional(),
+  imagePublicId: z.string().optional(),
   newPrice: z.number().nonnegative().optional(),
   usedPrice: z.number().nonnegative().optional(),
   currency: z.string().max(10).optional(),
@@ -72,6 +76,7 @@ export const listVariantQueryZodSchema = z.object({
   limit: z.string().optional(),
   search: z.string().optional(),
   productId: z.string().optional(),
+  categoryId: z.string().optional(), // browse-by-category (homepage grid)
   storage: z.string().optional(),
   isActive: z.string().optional(),
 });

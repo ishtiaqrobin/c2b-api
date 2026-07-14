@@ -14,7 +14,7 @@ const ensureUser = (req: Request) => {
 const extractFileInfo = (req: Request, required = false) => {
   if (!req.file) {
     if (required) {
-      throw new AppError(status.BAD_REQUEST, "Product image is required");
+      throw new AppError(status.BAD_REQUEST, "Image is required");
     }
     return { imageUrl: undefined, imagePublicId: undefined };
   }
@@ -116,8 +116,18 @@ const deleteProduct = catchAsync(async (req: Request, res: Response) => {
 // ==================== VARIANT ====================
 
 const createVariant = catchAsync(async (req: Request, res: Response) => {
+  ensureUser(req);
   const id = req.params.productId;
-  const result = await ProductService.createVariant(id as string, req.body);
+
+  // Variant image is optional — some variants (e.g. a storage-only
+  // difference with no distinct color photo) may rely on the parent
+  // product's image instead. `required = false` keeps that valid.
+  const { imageUrl, imagePublicId } = extractFileInfo(req, false);
+
+  const result = await ProductService.createVariant(id as string, {
+    ...req.body,
+    ...(imageUrl ? { imageUrl, imagePublicId } : {}),
+  });
   sendResponse(res, {
     statusCode: status.CREATED,
     success: true,
@@ -149,8 +159,19 @@ const listVariants = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateVariant = catchAsync(async (req: Request, res: Response) => {
+  ensureUser(req);
   const id = req.params.id;
-  const result = await ProductService.updateVariant(id as string, req.body);
+
+  // `imageUrl !== undefined` mirrors updateProduct's pattern: a file
+  // present means "replace the image", while no file means "leave the
+  // existing variant image untouched" (service only updates fields
+  // explicitly passed).
+  const { imageUrl, imagePublicId } = extractFileInfo(req, false);
+
+  const result = await ProductService.updateVariant(id as string, {
+    ...req.body,
+    ...(imageUrl !== undefined ? { imageUrl, imagePublicId } : {}),
+  });
   sendResponse(res, {
     statusCode: status.OK,
     success: true,

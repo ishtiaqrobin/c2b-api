@@ -15,6 +15,23 @@ import {
   IPriceUpdatePayload,
 } from "./product.interface";
 
+// Reused include shapes -----------------------------------------------
+
+// Category with name + parent (Main) so the frontend can build a full
+// breadcrumb ("Main > Sub > Product") without an extra API call.
+const categoryRefInclude = {
+  select: {
+    id: true,
+    slug: true,
+    name: true,
+    parent: { select: { id: true, slug: true, name: true } },
+  },
+} satisfies { select: Prisma.CategorySelect };
+
+const variantWithDeductionsInclude = {
+  deductions: { where: { isDeleted: false } },
+} satisfies Prisma.ProductVariantInclude;
+
 // ==================== PRODUCT ====================
 
 const createProduct = async (payload: IProductCreate) => {
@@ -48,6 +65,8 @@ const createProduct = async (payload: IProductCreate) => {
             sku: v.sku,
             storage: v.storage,
             color: v.color,
+            imageUrl: v.imageUrl,
+            imagePublicId: v.imagePublicId,
             newPrice: v.newPrice,
             usedPrice: v.usedPrice,
             currency: v.currency ?? "BDT",
@@ -70,11 +89,8 @@ const createProduct = async (payload: IProductCreate) => {
       }),
     },
     include: {
-      variants: {
-        include: {
-          deductions: true,
-        },
-      },
+      category: categoryRefInclude,
+      variants: { include: variantWithDeductionsInclude },
     },
   });
 };
@@ -83,14 +99,10 @@ const getProductById = async (id: string) => {
   const product = await prisma.product.findUnique({
     where: { id, isDeleted: false },
     include: {
-      category: { select: { id: true, slug: true } },
+      category: categoryRefInclude,
       variants: {
         where: { isDeleted: false },
-        include: {
-          deductions: {
-            where: { isDeleted: false },
-          },
-        },
+        include: variantWithDeductionsInclude,
       },
     },
   });
@@ -106,14 +118,10 @@ const getProductBySlug = async (slug: string) => {
   const product = await prisma.product.findUnique({
     where: { slug, isDeleted: false },
     include: {
-      category: { select: { id: true, slug: true } },
+      category: categoryRefInclude,
       variants: {
         where: { isDeleted: false },
-        include: {
-          deductions: {
-            where: { isDeleted: false },
-          },
-        },
+        include: variantWithDeductionsInclude,
       },
     },
   });
@@ -153,7 +161,7 @@ const listProducts = async (query: IProductListQuery) => {
       take: limit,
       orderBy: { createdAt: "desc" },
       include: {
-        category: { select: { id: true, slug: true } },
+        category: categoryRefInclude,
         _count: { select: { variants: true } },
       },
     }),
@@ -218,14 +226,10 @@ const updateProduct = async (id: string, payload: IProductUpdate) => {
         }),
       },
       include: {
-        category: { select: { id: true, slug: true } },
+        category: categoryRefInclude,
         variants: {
           where: { isDeleted: false },
-          include: {
-            deductions: {
-              where: { isDeleted: false },
-            },
-          },
+          include: variantWithDeductionsInclude,
         },
       },
     });
@@ -235,20 +239,43 @@ const updateProduct = async (id: string, payload: IProductUpdate) => {
 const deleteProduct = async (id: string) => {
   const existing = await prisma.product.findUnique({
     where: { id, isDeleted: false },
+    include: {
+      variants: {
+        where: { isDeleted: false },
+        select: { id: true, imagePublicId: true },
+      },
+    },
   });
   if (!existing) {
     throw new AppError(status.NOT_FOUND, "Product not found");
   }
 
-  // Delete image from Cloudinary
-  if (existing.imagePublicId) {
-    await deleteFileByPublicId(existing.imagePublicId);
-  }
+  return prisma.$transaction(async (tx) => {
+    // Clean up Cloudinary images: the product's own image, plus every
+    // still-active variant's image (now that variants can carry their
+    // own color-specific photo). Without this, deleting a product used
+    // to leave its variant images orphaned on Cloudinary.
+    if (existing.imagePublicId) {
+      await deleteFileByPublicId(existing.imagePublicId);
+    }
+    for (const variant of existing.variants) {
+      if (variant.imagePublicId) {
+        await deleteFileByPublicId(variant.imagePublicId);
+      }
+    }
 
-  return prisma.product.update({
-    where: { id },
-    data: { isDeleted: true, deletedAt: new Date() },
-    select: { id: true, slug: true, isDeleted: true, deletedAt: true },
+    // Cascade soft-delete to variants so they don't linger as active
+    // records under a deleted product.
+    await tx.productVariant.updateMany({
+      where: { productId: id, isDeleted: false },
+      data: { isDeleted: true, deletedAt: new Date() },
+    });
+
+    return tx.product.update({
+      where: { id },
+      data: { isDeleted: true, deletedAt: new Date() },
+      select: { id: true, slug: true, isDeleted: true, deletedAt: true },
+    });
   });
 };
 
@@ -277,6 +304,8 @@ const createVariant = async (productId: string, payload: IVariantCreate) => {
       sku: payload.sku,
       storage: payload.storage,
       color: payload.color,
+      imageUrl: payload.imageUrl,
+      imagePublicId: payload.imagePublicId,
       newPrice: payload.newPrice,
       usedPrice: payload.usedPrice,
       currency: payload.currency ?? "BDT",
@@ -295,9 +324,7 @@ const createVariant = async (productId: string, payload: IVariantCreate) => {
         },
       }),
     },
-    include: {
-      deductions: true,
-    },
+    include: variantWithDeductionsInclude,
   });
 };
 
@@ -305,10 +332,17 @@ const getVariantById = async (id: string) => {
   const variant = await prisma.productVariant.findUnique({
     where: { id, isDeleted: false },
     include: {
-      product: { select: { id: true, slug: true } },
-      deductions: {
-        where: { isDeleted: false },
+      product: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          imageUrl: true,
+          updateDate: true,
+          category: categoryRefInclude,
+        },
       },
+      deductions: { where: { isDeleted: false } },
     },
   });
 
@@ -331,6 +365,18 @@ const listVariants = async (query: IVariantListQuery) => {
     ...(query.isActive !== undefined
       ? { isActive: query.isActive === "true" }
       : {}),
+    // Browse all variants under a category — used by the storefront
+    // homepage grid. Only pulls variants whose parent product is
+    // itself active and non-deleted.
+    ...(query.categoryId
+      ? {
+          product: {
+            categoryId: query.categoryId,
+            isActive: true,
+            isDeleted: false,
+          },
+        }
+      : {}),
     ...(query.search
       ? {
           OR: [
@@ -349,10 +395,17 @@ const listVariants = async (query: IVariantListQuery) => {
       take: limit,
       orderBy: { createdAt: "desc" },
       include: {
-        product: { select: { id: true, slug: true } },
-        deductions: {
-          where: { isDeleted: false },
+        product: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            imageUrl: true,
+            updateDate: true,
+            category: categoryRefInclude,
+          },
         },
+        deductions: { where: { isDeleted: false } },
       },
     }),
     prisma.productVariant.count({ where }),
@@ -381,26 +434,40 @@ const updateVariant = async (id: string, payload: IVariantUpdate) => {
     }
   }
 
-  return prisma.productVariant.update({
-    where: { id },
-    data: {
-      ...(payload.sku !== undefined && { sku: payload.sku }),
-      ...(payload.storage !== undefined && { storage: payload.storage }),
-      ...(payload.color !== undefined && { color: payload.color }),
-      ...(payload.newPrice !== undefined && { newPrice: payload.newPrice }),
-      ...(payload.usedPrice !== undefined && { usedPrice: payload.usedPrice }),
-      ...(payload.currency !== undefined && { currency: payload.currency }),
-      ...(payload.maxQuantityPerOrder !== undefined && {
-        maxQuantityPerOrder: payload.maxQuantityPerOrder,
-      }),
-      ...(payload.dailyPurchaseLimit !== undefined && {
-        dailyPurchaseLimit: payload.dailyPurchaseLimit,
-      }),
-      ...(payload.isActive !== undefined && { isActive: payload.isActive }),
-    },
-    include: {
-      deductions: true,
-    },
+  return prisma.$transaction(async (tx) => {
+    // Delete the old variant image from Cloudinary if a new one is coming in.
+    if (
+      (payload.imageUrl !== undefined || payload.imagePublicId !== undefined) &&
+      existing.imagePublicId
+    ) {
+      await deleteFileByPublicId(existing.imagePublicId);
+    }
+
+    return tx.productVariant.update({
+      where: { id },
+      data: {
+        ...(payload.sku !== undefined && { sku: payload.sku }),
+        ...(payload.storage !== undefined && { storage: payload.storage }),
+        ...(payload.color !== undefined && { color: payload.color }),
+        ...(payload.imageUrl !== undefined && { imageUrl: payload.imageUrl }),
+        ...(payload.imagePublicId !== undefined && {
+          imagePublicId: payload.imagePublicId,
+        }),
+        ...(payload.newPrice !== undefined && { newPrice: payload.newPrice }),
+        ...(payload.usedPrice !== undefined && {
+          usedPrice: payload.usedPrice,
+        }),
+        ...(payload.currency !== undefined && { currency: payload.currency }),
+        ...(payload.maxQuantityPerOrder !== undefined && {
+          maxQuantityPerOrder: payload.maxQuantityPerOrder,
+        }),
+        ...(payload.dailyPurchaseLimit !== undefined && {
+          dailyPurchaseLimit: payload.dailyPurchaseLimit,
+        }),
+        ...(payload.isActive !== undefined && { isActive: payload.isActive }),
+      },
+      include: variantWithDeductionsInclude,
+    });
   });
 };
 
@@ -410,6 +477,10 @@ const deleteVariant = async (id: string) => {
   });
   if (!existing) {
     throw new AppError(status.NOT_FOUND, "Variant not found");
+  }
+
+  if (existing.imagePublicId) {
+    await deleteFileByPublicId(existing.imagePublicId);
   }
 
   return prisma.productVariant.update({
@@ -455,23 +526,21 @@ const updateDeduction = async (
     throw new AppError(status.NOT_FOUND, "Deduction not found");
   }
 
-  return prisma.$transaction(async (tx) => {
-    return tx.variantDeduction.update({
-      where: { id: deductionId },
-      data: {
-        ...(payload.condition !== undefined && {
-          condition: payload.condition,
-        }),
-        ...(payload.amount !== undefined && { amount: payload.amount }),
-        ...(payload.sortOrder !== undefined && {
-          sortOrder: payload.sortOrder,
-        }),
-        ...(payload.isActive !== undefined && {
-          isActive: payload.isActive,
-        }),
-        ...(payload.label !== undefined && { label: payload.label }),
-      },
-    });
+  return prisma.variantDeduction.update({
+    where: { id: deductionId },
+    data: {
+      ...(payload.condition !== undefined && {
+        condition: payload.condition,
+      }),
+      ...(payload.amount !== undefined && { amount: payload.amount }),
+      ...(payload.sortOrder !== undefined && {
+        sortOrder: payload.sortOrder,
+      }),
+      ...(payload.isActive !== undefined && {
+        isActive: payload.isActive,
+      }),
+      ...(payload.label !== undefined && { label: payload.label }),
+    },
   });
 };
 

@@ -35,6 +35,8 @@ export interface IVariantCreate {
   sku?: string;
   storage?: string;
   color?: string;
+  imageUrl?: string; // optional color-specific photo
+  imagePublicId?: string;
   newPrice?: number;
   usedPrice?: number;
   currency?: string;
@@ -48,6 +50,8 @@ export interface IVariantUpdate {
   sku?: string;
   storage?: string;
   color?: string;
+  imageUrl?: string;
+  imagePublicId?: string;
   newPrice?: number;
   usedPrice?: number;
   currency?: string;
@@ -61,6 +65,7 @@ export interface IVariantListQuery {
   limit?: string;
   search?: string;
   productId?: string;
+  categoryId?: string; // browse all variants under a category (homepage grid)
   storage?: string;
   isActive?: string;
 }

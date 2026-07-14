@@ -34,6 +34,11 @@ router.get("/slug/:slug", ProductController.getProductBySlug);
 // ==================== VARIANT (PUBLIC) ====================
 // NOTE: These must come BEFORE "/:id" below, otherwise Express will match
 // "/variants" and "/variants/:id" as if "variants" were a product :id.
+//
+// listVariants now also accepts ?categoryId=<id> (see product.validation.ts)
+// so the storefront can pull every variant under a category — e.g. the
+// homepage grid — in a single call:
+//   GET /products/variants?categoryId=X&storage=256GB&page=1&limit=20
 
 router.get(
   "/variants",
@@ -73,11 +78,18 @@ router.delete(
 );
 
 // ==================== VARIANT (ADMIN) ====================
+// multerUpload added so a variant can carry its own color-specific photo
+// (e.g. "256GB Orange" vs "256GB Blue") instead of only inheriting the
+// parent product's image. The field name matches the product routes
+// ("image") for frontend consistency — send it as multipart/form-data
+// when a variant photo is included, otherwise omit the file entirely
+// and the variant falls back to the parent Product.imageUrl.
 
 router.post(
   "/:productId/variants",
   checkAuth,
   requirePermission("variant.manage"),
+  multerUpload("products").single("image"),
   validateRequest(createVariantZodSchema),
   ProductController.createVariant,
 );
@@ -86,6 +98,7 @@ router.patch(
   "/variants/:id",
   checkAuth,
   requirePermission("variant.manage"),
+  multerUpload("products").single("image"),
   validateRequest(updateVariantZodSchema),
   ProductController.updateVariant,
 );
