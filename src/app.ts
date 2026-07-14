@@ -86,7 +86,7 @@ app.use(
 app.use("/api/auth", toNodeHandler(auth));
 
 // General rate limiter (all remaining routes)
-app.use(generalRateLimiter);
+// app.use(generalRateLimiter);
 
 // Body parsers
 app.use(express.json());

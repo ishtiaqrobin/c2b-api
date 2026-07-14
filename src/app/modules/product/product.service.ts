@@ -342,7 +342,10 @@ const getVariantById = async (id: string) => {
           category: categoryRefInclude,
         },
       },
-      deductions: { where: { isDeleted: false } },
+      deductions: {
+        where: { isDeleted: false, isActive: true },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
 
@@ -405,7 +408,10 @@ const listVariants = async (query: IVariantListQuery) => {
             category: categoryRefInclude,
           },
         },
-        deductions: { where: { isDeleted: false } },
+        deductions: {
+          where: { isDeleted: false, isActive: true },
+          orderBy: { sortOrder: "asc" },
+        },
       },
     }),
     prisma.productVariant.count({ where }),

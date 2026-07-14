@@ -105,7 +105,7 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   const betterAuthSessionToken = req.cookies["better-auth.session_token"];
 
-  console.log("betterAuthSessionToken", betterAuthSessionToken);
+  // console.log("betterAuthSessionToken", betterAuthSessionToken);
 
   const result = await AuthService.changePassword(
     payload,

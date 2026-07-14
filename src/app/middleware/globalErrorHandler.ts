@@ -22,7 +22,7 @@ export const globalErrorHandler = async (
   next: NextFunction,
 ) => {
   if (env.NODE_ENV === "development") {
-    console.log("🔥 Global Error Handler:", err);
+    // console.log("🔥 Global Error Handler:", err);
   }
 
   // Clean up uploaded files on error (rollback Cloudinary uploads)
