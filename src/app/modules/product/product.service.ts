@@ -395,6 +395,7 @@ const listVariants = async (query: IVariantListQuery) => {
             { sku: { contains: query.search, mode: "insensitive" } },
             { storage: { contains: query.search, mode: "insensitive" } },
             { color: { contains: query.search, mode: "insensitive" } },
+            { product: { name: { contains: query.search, mode: "insensitive" } } },
           ],
         }
       : {}),
