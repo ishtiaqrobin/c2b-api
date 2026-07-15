@@ -16,6 +16,7 @@ import { BannerRoutes } from "../modules/banner/banner.route";
 import { BuybackFeatureRoutes } from "../modules/buyback_features/buyback.route";
 import { SettingsRoutes } from "../modules/settings/settings.route";
 import { CheckItemRoutes } from "../modules/check_item/checkItem.route";
+import { FaqRoutes } from "../modules/faq/faq.route";
 
 const router = Router();
 
@@ -36,5 +37,6 @@ router.use("/banners", BannerRoutes);
 router.use("/buyback-features", BuybackFeatureRoutes);
 router.use("/settings", SettingsRoutes);
 router.use("/check-items", CheckItemRoutes);
+router.use("/faqs", FaqRoutes);
 
 export const IndexRoutes = router;
