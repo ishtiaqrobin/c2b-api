@@ -16,6 +16,11 @@ import {
 const categoryInclude = {
   parent: { select: { id: true, slug: true, name: true } },
   _count: { select: { children: true, products: true } },
+  checkItems: {
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" as const },
+    select: { id: true, content: true, sortOrder: true },
+  },
 } satisfies Prisma.CategoryInclude;
 
 // ==================== CATEGORY ====================

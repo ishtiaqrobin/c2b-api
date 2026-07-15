@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { CategoryController } from "./category.controller";
+import { CheckItemController } from "../check_item/checkItem.controller";
 import {
   validateRequest,
   validateQuery,
@@ -86,6 +87,14 @@ router.delete(
   checkAuth,
   requirePermission("category.manage"),
   CategoryController.deleteCategory,
+);
+
+// ==================== CATEGORY CHECK ITEMS (public) ====================
+
+// Get check items by category ID (public)
+router.get(
+  "/:categoryId/check-items",
+  CheckItemController.getCheckItemsByCategoryId,
 );
 
 // ==================== CATEGORY NOTICE (admin) ====================

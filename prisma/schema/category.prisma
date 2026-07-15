@@ -22,10 +22,27 @@ model Category {
     products    Product[]
     banners     Banner[]
     checkNotice CategoryNotice?
+    checkItems  CategoryCheckItem[]
 
     @@index([parentId])
     @@index([isPopular])
     @@map("category")
+}
+
+model CategoryCheckItem {
+    id         String   @id @default(cuid())
+    categoryId String
+    content    String
+    sortOrder  Int      @default(0)
+    isActive   Boolean  @default(true)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+    @@index([categoryId])
+    @@index([isActive])
+    @@map("category_check_item")
 }
 
 model CategoryNotice {
