@@ -77,6 +77,7 @@ export const listVariantQueryZodSchema = z.object({
   search: z.string().optional(),
   productId: z.string().optional(),
   categoryId: z.string().optional(), // browse-by-category (homepage grid)
+  categoryIds: z.string().optional(), // comma-separated
   storage: z.string().optional(),
   isActive: z.string().optional(),
 });

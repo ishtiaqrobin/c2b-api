@@ -371,7 +371,16 @@ const listVariants = async (query: IVariantListQuery) => {
     // Browse all variants under a category — used by the storefront
     // homepage grid. Only pulls variants whose parent product is
     // itself active and non-deleted.
-    ...(query.categoryId
+    ...(query.categoryIds
+      ? {
+          product: {
+            categoryId: { in: query.categoryIds.split(",") },
+            isActive: true,
+            isDeleted: false,
+          },
+        }
+      : {}),
+    ...(!query.categoryIds && query.categoryId
       ? {
           product: {
             categoryId: query.categoryId,

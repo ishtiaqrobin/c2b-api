@@ -66,6 +66,7 @@ export interface IVariantListQuery {
   search?: string;
   productId?: string;
   categoryId?: string; // browse all variants under a category (homepage grid)
+  categoryIds?: string; // comma-separated category IDs
   storage?: string;
   isActive?: string;
 }
