@@ -144,7 +144,7 @@ const getOrderById = async (id: string) => {
         include: {
           variant: {
             include: {
-              product: { include: { translations: true } },
+              product: true,
             },
           },
           deductions: true,
@@ -153,7 +153,7 @@ const getOrderById = async (id: string) => {
       statusHistory: {
         orderBy: { createdAt: "desc" },
       },
-      store: { include: { translations: true } },
+      store: true,
       shippingAddress: true,
       payment: true,
     },
@@ -174,7 +174,7 @@ const getOrderByOrderNumber = async (orderNumber: string) => {
         include: {
           variant: {
             include: {
-              product: { include: { translations: true } },
+              product: true,
             },
           },
           deductions: true,
@@ -183,7 +183,7 @@ const getOrderByOrderNumber = async (orderNumber: string) => {
       statusHistory: {
         orderBy: { createdAt: "desc" },
       },
-      store: { include: { translations: true } },
+      store: true,
       shippingAddress: true,
       payment: true,
     },
@@ -278,7 +278,7 @@ const updateOrderStatus = async (
       include: {
         items: { include: { deductions: true } },
         statusHistory: { orderBy: { createdAt: "desc" } },
-        store: { include: { translations: true } },
+        store: true,
       },
     });
   });
