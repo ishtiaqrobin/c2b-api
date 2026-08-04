@@ -16,6 +16,15 @@ model IndividualProfile {
     streetAddress   String
     apartment       String?
 
+    // Payout info — how the business pays this customer for sold items
+    // (mobile wallet / bank transfer / cash at store).
+    preferredPayoutMethod PaymentMethod?
+    bkashNumber           String?
+    nagadNumber           String?
+    bankAccountName       String?
+    bankAccountNumber     String?
+    bankAccountBranch     String?
+
     isDeleted Boolean   @default(false)
     deletedAt DateTime?
     createdAt DateTime  @default(now())

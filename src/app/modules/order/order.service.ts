@@ -4,6 +4,8 @@ import {
   BuybackMethod,
   OrderStatus,
   ItemCondition,
+  PaymentMethod,
+  PaymentStatus,
 } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
@@ -272,6 +274,23 @@ const updateOrderStatus = async (
         changedBy: actingUserId,
       },
     });
+
+    // When the customer accepts the price (APPROVED), open a payment record
+    // so the owner/admin can settle the payout from the Payments dashboard.
+    if (payload.status === OrderStatus.APPROVED) {
+      await tx.payment.upsert({
+        where: { orderId },
+        update: {},
+        create: {
+          orderId,
+          storeId: order.storeId,
+          method: PaymentMethod.CASH,
+          status: PaymentStatus.PENDING,
+          amount: order.totalAmount,
+          currency: order.currency,
+        },
+      });
+    }
 
     return tx.order.findUnique({
       where: { id: orderId },

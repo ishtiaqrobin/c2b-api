@@ -1,19 +1,25 @@
 import { Router } from "express";
 import { UserController } from "./user.controller";
+import { AuthController } from "../auth/auth.controller";
 import { validateRequest } from "../../middleware/validateRequest";
 import { checkAuth } from "../../middleware/checkAuth";
-import { registerZodSchema } from "./user.validation";
+import { updatePayoutInfoZodSchema, registerZodSchema } from "./user.validation";
 
 const router = Router();
 
-// Public: self-registration (Individual or Corporation). Always CUSTOMER.
-// router.post(
-//   "/register",
-//   validateRequest(registerZodSchema),
-//   UserController.register,
-// );
+// Public: register a new user (Individual or Corporation).
+router.post(
+  "/register",
+  validateRequest(registerZodSchema),
+  AuthController.registerUser,
+);
 
-// Authenticated: current user's profile.
-// router.get("/me", checkAuth, UserController.getMe);
+// Authenticated: update own payout info (bank / mobile wallet / cash).
+router.patch(
+  "/me/payout-info",
+  checkAuth,
+  validateRequest(updatePayoutInfoZodSchema),
+  UserController.updatePayoutInfo,
+);
 
 export const UserRoutes = router;

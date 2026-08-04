@@ -4,6 +4,7 @@ export interface IPaymentUpdate {
   status: PaymentStatus;
   method?: string;
   reference?: string;
+  note?: string;
 }
 
 export interface IPaymentListQuery {

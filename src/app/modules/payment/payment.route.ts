@@ -22,6 +22,9 @@ router.get(
   PaymentController.listPayments,
 );
 
+// Customer: list own orders' payments
+router.get("/my", checkAuth, PaymentController.listMyPayments);
+
 // Admin: get payment by ID
 router.get(
   "/:id",

@@ -5,6 +5,7 @@ import {
   QualifiedInvoiceStatus,
   OccupationType,
   BankAccountType,
+  PaymentMethod,
 } from "../../../generated/prisma/enums";
 
 const passwordSchema = z
@@ -105,3 +106,22 @@ export const registerZodSchema = z.discriminatedUnion("accountType", [
   registerIndividualZodSchema,
   registerCorporationZodSchema,
 ]);
+
+// Payout info — how the business pays the customer for sold items.
+// All fields optional so the customer can update just one at a time.
+export const updatePayoutInfoZodSchema = z.object({
+  preferredPayoutMethod: z
+    .enum([
+      PaymentMethod.BKASH,
+      PaymentMethod.NAGAD,
+      PaymentMethod.ROCKET,
+      PaymentMethod.BANK_TRANSFER,
+      PaymentMethod.CASH,
+    ])
+    .optional(),
+  bkashNumber: z.string().optional(),
+  nagadNumber: z.string().optional(),
+  bankAccountName: z.string().optional(),
+  bankAccountNumber: z.string().optional(),
+  bankAccountBranch: z.string().optional(),
+});

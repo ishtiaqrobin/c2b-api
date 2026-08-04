@@ -4,6 +4,7 @@ import {
   QualifiedInvoiceStatus,
   OccupationType,
   BankAccountType,
+  PaymentMethod,
 } from "../../../generated/prisma/enums";
 
 interface IAddressInput {
@@ -20,6 +21,15 @@ interface ICompanyAddressInput {
   companyCityTownVillage: string;
   companyStreetAddress: string;
   companyApartment?: string;
+}
+
+export interface IPayoutUpdate {
+  preferredPayoutMethod?: PaymentMethod;
+  bkashNumber?: string;
+  nagadNumber?: string;
+  bankAccountName?: string;
+  bankAccountNumber?: string;
+  bankAccountBranch?: string;
 }
 
 

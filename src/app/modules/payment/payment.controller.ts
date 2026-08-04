@@ -47,6 +47,17 @@ const listPayments = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const listMyPayments = catchAsync(async (req: Request, res: Response) => {
+  const user = ensureUser(req);
+  const result = await PaymentService.listMyPayments(user.userId);
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Payments retrieved successfully",
+    data: result,
+  });
+});
+
 const updatePayment = catchAsync(async (req: Request, res: Response) => {
   const user = ensureUser(req);
   const result = await PaymentService.updatePayment(
@@ -65,6 +76,7 @@ const updatePayment = catchAsync(async (req: Request, res: Response) => {
 export const PaymentController = {
   getPaymentById,
   getPaymentByOrderId,
+  listMyPayments,
   listPayments,
   updatePayment,
 };
