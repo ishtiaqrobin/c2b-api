@@ -423,7 +423,7 @@ Same enriched `product` + `category` shape as #8.
 
 ### currency
 
-Plain string, max 10 chars. **Default: `BDT`** (not JPY — corrected from
+Plain string, max 10 chars. **Default: `BDT`** (not BDT — corrected from
 the previous version of this doc, which didn't match the schema).
 
 ### sortOrder

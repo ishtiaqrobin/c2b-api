@@ -9,6 +9,10 @@ import { IStoreScope } from "../interfaces/requestUser.interface";
  * Verifies the better-auth session cookie, loads the user with RBAC roles,
  * and attaches a normalized user object (with effective permissions and
  * store scopes) to req.user. No JWT involved.
+ *
+ * Accepts the session token either from the `better-auth.session_token`
+ * cookie (browser requests) or from the `Authorization: Bearer <token>`
+ * header (Next.js server actions, which have no access to browser cookies).
  */
 export const checkAuth = async (
   req: Request,
@@ -16,10 +20,15 @@ export const checkAuth = async (
   next: NextFunction,
 ) => {
   try {
-    const sessionToken = cookieUtils.getCookie(
-      req,
-      "better-auth.session_token",
-    );
+    const authHeader = req.headers.authorization;
+    const bearerToken =
+      authHeader && authHeader.startsWith("Bearer ")
+        ? authHeader.slice("Bearer ".length)
+        : undefined;
+
+    const sessionToken =
+      bearerToken ??
+      cookieUtils.getCookie(req, "better-auth.session_token");
 
     if (!sessionToken) {
       throw new AppError(

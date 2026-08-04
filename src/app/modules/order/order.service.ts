@@ -293,16 +293,12 @@ const updateTrackingNumber = async (
     throw new AppError(status.NOT_FOUND, "Order not found");
   }
 
-  return prisma.order.update({
+  await prisma.order.update({
     where: { id: orderId },
     data: { trackingNumber },
-    select: {
-      id: true,
-      orderNumber: true,
-      trackingNumber: true,
-      status: true,
-    },
   });
+
+  return getOrderById(orderId);
 };
 
 const cancelOrder = async (orderId: string, actingUserId: string) => {
