@@ -1,10 +1,22 @@
 import status from "http-status";
 import { Prisma } from "../../../generated/prisma/client";
-import { EkycStatus, EkycDocType } from "../../../generated/prisma/enums";
+import {
+  AccountType,
+  AuditAction,
+  EkycStatus,
+  EkycDocType,
+  NotificationChannel,
+} from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { deleteFileByPublicId } from "../../config/cloudinary.config";
+import { writeAuditLog } from "../../utils/auditLog";
 import AppError from "../../errorHelpers/AppError";
 import { IEkycUpdate, IEkycListQuery } from "./ekyc.interface";
+
+const CORPORATE_ONLY_DOC_TYPES: EkycDocType[] = [
+  EkycDocType.TIN_CERTIFICATE,
+  EkycDocType.TRADE_LICENSE,
+];
 
 const getMyEkyc = async (userId: string) => {
   const ekyc = await prisma.ekyc.findUnique({
@@ -150,10 +162,45 @@ const uploadDocument = async (
   fileUrl: string,
   publicId: string | null,
 ) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { accountType: true },
+  });
+
+  const docTypeEnum = docType as EkycDocType;
+  const isCorporate = user?.accountType === AccountType.CORPORATION;
+
+  if (isCorporate && !CORPORATE_ONLY_DOC_TYPES.includes(docTypeEnum)) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "Corporate accounts can only upload TIN_CERTIFICATE or TRADE_LICENSE documents",
+    );
+  }
+
+  if (!isCorporate && CORPORATE_ONLY_DOC_TYPES.includes(docTypeEnum)) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "TIN_CERTIFICATE and TRADE_LICENSE are only allowed for corporate accounts",
+    );
+  }
+
   const ekyc = await prisma.ekyc.findUnique({ where: { userId } });
 
   if (!ekyc) {
-    throw new AppError(status.NOT_FOUND, "eKYC record not found");
+    // Auto-create ekyc record on first upload (same as getMyEkyc)
+    return prisma.ekyc.create({
+      data: {
+        userId,
+        documents: {
+          create: {
+            docType: docTypeEnum,
+            fileUrl,
+            publicId,
+          },
+        },
+      },
+      include: { documents: true },
+    });
   }
 
   if (ekyc.status === EkycStatus.VERIFIED) {
@@ -261,20 +308,40 @@ const updateEkycStatus = async (
     },
   });
 
-  // Create audit log
-  await prisma.auditLog.create({
-    data: {
-      userId: actingUserId,
-      action:
-        "EKYC_REVIEW" as (typeof import("../../../generated/prisma/enums").AuditAction)[keyof typeof import("../../../generated/prisma/enums").AuditAction],
-      entityType: "EKYC",
-      entityId: ekycId,
-      newValue: JSON.stringify({
-        status: payload.status,
-        rejectReason: payload.rejectReason ?? null,
-      }),
+  // Audit trail (never fails the operation)
+  await writeAuditLog({
+    actingUserId,
+    action: AuditAction.EKYC_REVIEW,
+    entityType: "Ekyc",
+    entityId: ekycId,
+    description: `eKYC ${payload.status} for user ${ekyc.userId}`,
+    before: { status: ekyc.status },
+    after: {
+      status: payload.status,
+      rejectReason: payload.rejectReason ?? null,
     },
   });
+
+  // In-app notification to the customer (never fails the operation)
+  try {
+    await prisma.notification.create({
+      data: {
+        userId: ekyc.userId,
+        type: "EKYC_RESULT",
+        channel: NotificationChannel.IN_APP,
+        subject:
+          payload.status === EkycStatus.VERIFIED
+            ? "Your eKYC has been verified"
+            : "Your eKYC was rejected",
+        body:
+          payload.status === EkycStatus.VERIFIED
+            ? "Congratulations! Your identity verification was approved."
+            : `Your eKYC submission was rejected. Reason: ${payload.rejectReason ?? "Not provided"}. Please upload corrected documents and resubmit.`,
+      },
+    });
+  } catch (err) {
+    console.error("⚠️ Failed to create eKYC notification:", err);
+  }
 
   return updated;
 };

@@ -18,10 +18,14 @@ export const updateEkycZodSchema = z
 
 export const uploadDocumentZodSchema = z.object({
   docType: z.enum([
+    EkycDocType.NID,
+    EkycDocType.SMART_CARD,
     EkycDocType.PASSPORT,
     EkycDocType.DRIVING_LICENSE,
-    EkycDocType.MY_NUMBER,
-    EkycDocType.RESIDENCE_CARD,
+    EkycDocType.BIRTH_CERTIFICATE,
+    EkycDocType.TIN_CERTIFICATE,
+    EkycDocType.TRADE_LICENSE,
+    EkycDocType.UTILITY_BILL,
   ]),
 });
 

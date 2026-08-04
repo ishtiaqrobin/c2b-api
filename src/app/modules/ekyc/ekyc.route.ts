@@ -2,7 +2,7 @@ import { Router } from "express";
 import { EkycController } from "./ekyc.controller";
 import { checkAuth } from "../../middleware/checkAuth";
 import { requirePermission } from "../../middleware/requirePermission";
-import { validateRequest } from "../../middleware/validateRequest";
+import { validateRequest, validateQuery } from "../../middleware/validateRequest";
 import { multerUpload } from "../../config/multer.config";
 import {
   updateEkycZodSchema,
@@ -36,7 +36,7 @@ router.get(
   "/",
   checkAuth,
   requirePermission("ekyc.manage"),
-  validateRequest(listEkycQueryZodSchema),
+  validateQuery(listEkycQueryZodSchema),
   EkycController.listEkyc,
 );
 
