@@ -19,6 +19,7 @@ export const PERMISSIONS = {
   ORDER_VIEW: "order.view",
   ORDER_UPDATE: "order.update",
   PAYMENT_MANAGE: "payment.manage",
+  INVOICE_MANAGE: "invoice.manage",
   EKYC_REVIEW: "ekyc.review",
 
   // Users & governance
@@ -99,6 +100,11 @@ export const PERMISSION_DEFINITIONS: {
     description: "Manage payments",
   },
   {
+    key: PERMISSIONS.INVOICE_MANAGE,
+    group: "Operations",
+    description: "View and download payment invoices",
+  },
+  {
     key: PERMISSIONS.EKYC_REVIEW,
     group: "Operations",
     description: "Review eKYC submissions",
@@ -159,6 +165,7 @@ export const DEFAULT_ROLES: {
       PERMISSIONS.ORDER_VIEW,
       PERMISSIONS.ORDER_UPDATE,
       PERMISSIONS.PAYMENT_MANAGE,
+      PERMISSIONS.INVOICE_MANAGE,
       PERMISSIONS.EKYC_REVIEW,
       PERMISSIONS.STORE_MANAGE,
     ],
@@ -188,6 +195,7 @@ export const DEFAULT_ROLES: {
       PERMISSIONS.ORDER_VIEW,
       PERMISSIONS.ORDER_UPDATE,
       PERMISSIONS.PAYMENT_MANAGE,
+      PERMISSIONS.INVOICE_MANAGE,
     ],
   },
 ];

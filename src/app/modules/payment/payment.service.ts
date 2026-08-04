@@ -7,6 +7,7 @@ import {
 } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
+import { PERMISSIONS } from "../../utils/permissions";
 import { IPaymentUpdate, IPaymentListQuery } from "./payment.interface";
 
 // Full payment detail (order, customer payout info, status history).
@@ -268,9 +269,134 @@ const updatePayment = async (
   });
 };
 
+// Access rights for invoice download:
+//  - Staff with `invoice.manage`: any payment (any status).
+//  - The customer who owns the order: only AFTER the payout was completed (PAID).
+const getInvoice = async (
+  paymentId: string,
+  actor: { userId: string; permissions: string[] },
+) => {
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    include: {
+      order: {
+        include: {
+          items: { include: { deductions: true } },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              individualProfile: true,
+              corporationProfile: true,
+            },
+          },
+          store: true,
+          shippingAddress: { include: { district: true } },
+        },
+      },
+    },
+  });
+
+  if (!payment) {
+    throw new AppError(status.NOT_FOUND, "Payment not found");
+  }
+
+  const isStaff = actor.permissions.includes(PERMISSIONS.INVOICE_MANAGE);
+  const isOwner = payment.order.userId === actor.userId;
+
+  if (!isStaff && !isOwner) {
+    throw new AppError(
+      status.FORBIDDEN,
+      "You are not allowed to view this invoice",
+    );
+  }
+
+  if (isOwner && !isStaff && payment.status !== PaymentStatus.PAID) {
+    throw new AppError(
+      status.FORBIDDEN,
+      "Invoice is available after the payment is completed",
+    );
+  }
+
+  const siteConfig = await prisma.siteConfig.findFirst();
+  const order = payment.order;
+  const ownerProfile =
+    order.user.individualProfile ?? order.user.corporationProfile;
+
+  const address =
+    order.shippingAddress ??
+    (order.user.individualProfile
+      ? {
+          streetAddress: order.user.individualProfile.streetAddress,
+          cityTownVillage: order.user.individualProfile.cityTownVillage,
+          postCode: order.user.individualProfile.postCode,
+          district: order.user.individualProfile.district?.nameEn,
+        }
+      : undefined);
+
+  return {
+    invoiceNumber: `INV-${order.orderNumber}`,
+    payment: {
+      id: payment.id,
+      status: payment.status,
+      method: payment.method,
+      reference: payment.reference,
+      paidAt: payment.paidAt,
+      amount: Number(payment.amount),
+      currency: payment.currency,
+    },
+    order: {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      method: order.method,
+      createdAt: order.createdAt,
+      totalAmount: Number(order.totalAmount),
+      currency: order.currency,
+      trackingNumber: order.trackingNumber,
+    },
+    items: order.items.map((item) => ({
+      productName: item.productNameSnapshot,
+      condition: item.condition,
+      quantity: item.quantity,
+      notes: item.notes,
+      basePrice: Number(item.basePriceSnapshot),
+      totalDeduction: Number(item.totalDeduction),
+      unitPrice: Number(item.unitPriceSnapshot),
+      lineTotal: Number(item.lineTotal),
+      deductions: item.deductions.map((d) => ({
+        label: d.labelSnapshot,
+        amount: Number(d.amountSnapshot),
+      })),
+    })),
+    customer: {
+      name: order.user.name,
+      email: order.user.email,
+      phone:
+        order.user.individualProfile?.telephone ??
+        order.user.corporationProfile?.companyTelephone ??
+        null,
+      address,
+    },
+    store: order.store
+      ? { name: order.store.name, address: order.store.address }
+      : null,
+    business: {
+      siteTitle: siteConfig?.siteTitle ?? null,
+      tagline: siteConfig?.tagline ?? null,
+      address: siteConfig?.address ?? null,
+      contactEmail: siteConfig?.contactEmail ?? null,
+      contactPhone: siteConfig?.contactPhone ?? null,
+      whatsappNumber: siteConfig?.whatsappNumber ?? null,
+    },
+  };
+};
+
 export const PaymentService = {
   getPaymentByOrderId,
   getPaymentById,
+  getInvoice,
   listMyPayments,
   listPayments,
   updatePayment,

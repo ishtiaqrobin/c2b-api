@@ -33,6 +33,14 @@ router.get(
   PaymentController.getPaymentById,
 );
 
+// Invoice download — staff (invoice.manage) or the owning customer (PAID only).
+// Access is enforced inside the service, so this route only needs checkAuth.
+router.get(
+  "/:id/invoice",
+  checkAuth,
+  PaymentController.getInvoice,
+);
+
 // Admin: get payment by order ID
 router.get(
   "/order/:orderId",

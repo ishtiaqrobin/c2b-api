@@ -73,9 +73,21 @@ const updatePayment = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getInvoice = catchAsync(async (req: Request, res: Response) => {
+  const user = ensureUser(req);
+  const result = await PaymentService.getInvoice(param(req, "id"), user);
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Invoice retrieved successfully",
+    data: result,
+  });
+});
+
 export const PaymentController = {
   getPaymentById,
   getPaymentByOrderId,
+  getInvoice,
   listMyPayments,
   listPayments,
   updatePayment,
