@@ -8,6 +8,7 @@ import {
 } from "../../middleware/validateRequest";
 import {
   createNotificationZodSchema,
+  deleteNotificationsZodSchema,
   listNotificationQueryZodSchema,
 } from "./notification.validation";
 
@@ -61,6 +62,16 @@ router.get(
   checkAuth,
   requirePermission("notification.manage"),
   NotificationController.getAdminNotificationById,
+);
+
+// Admin: bulk delete notifications (must be registered BEFORE "/:id"
+// so "bulk" is not captured by the :id param)
+router.delete(
+  "/bulk",
+  checkAuth,
+  requirePermission("notification.manage"),
+  validateRequest(deleteNotificationsZodSchema),
+  NotificationController.deleteManyNotifications,
 );
 
 // Admin: delete notification

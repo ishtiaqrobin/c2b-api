@@ -140,6 +140,21 @@ const deleteNotification = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Admin: bulk delete notifications
+const deleteManyNotifications = catchAsync(
+  async (req: Request, res: Response) => {
+    ensureUser(req);
+    const { ids } = req.body;
+    const result = await NotificationService.deleteManyNotifications(ids);
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: `${result.deletedCount} notifications deleted`,
+      data: result,
+    });
+  },
+);
+
 export const NotificationController = {
   getMyNotifications,
   getNotificationById,
@@ -150,4 +165,5 @@ export const NotificationController = {
   createNotification,
   getAdminNotificationById,
   deleteNotification,
+  deleteManyNotifications,
 };

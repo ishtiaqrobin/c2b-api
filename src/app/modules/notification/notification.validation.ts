@@ -26,3 +26,10 @@ export const listNotificationQueryZodSchema = z.object({
   userId: z.string().optional(),
   type: z.string().optional(),
 });
+
+export const deleteNotificationsZodSchema = z.object({
+  ids: z
+    .array(z.string().min(1))
+    .min(1, "At least one notification id is required")
+    .max(100, "Cannot delete more than 100 notifications at once"),
+});

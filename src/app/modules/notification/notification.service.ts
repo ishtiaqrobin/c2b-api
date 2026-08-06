@@ -189,6 +189,26 @@ const deleteNotification = async (id: string) => {
   return notification;
 };
 
+// Admin: bulk delete notifications
+const deleteManyNotifications = async (ids: string[]) => {
+  const existing = await prisma.notification.count({
+    where: { id: { in: ids } },
+  });
+
+  if (existing !== ids.length) {
+    throw new AppError(
+      status.NOT_FOUND,
+      "One or more notifications not found",
+    );
+  }
+
+  const result = await prisma.notification.deleteMany({
+    where: { id: { in: ids } },
+  });
+
+  return { deletedCount: result.count };
+};
+
 export const NotificationService = {
   getMyNotifications,
   getNotificationById,
@@ -199,4 +219,5 @@ export const NotificationService = {
   createNotification,
   getAdminNotificationById,
   deleteNotification,
+  deleteManyNotifications,
 };

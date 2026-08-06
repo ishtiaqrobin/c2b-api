@@ -19,3 +19,7 @@ export interface INotificationListQuery {
   userId?: string;
   type?: string;
 }
+
+export interface INotificationDeleteMany {
+  ids: string[];
+}
