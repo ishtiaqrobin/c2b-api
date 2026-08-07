@@ -107,6 +107,90 @@ export const registerZodSchema = z.discriminatedUnion("accountType", [
   registerCorporationZodSchema,
 ]);
 
+// ===== Profile update helpers (accept both JSON and FormData) =====
+// When a profile form is submitted as multipart/form-data every value arrives
+// as a string, so numeric ids need to be coerced to numbers.
+
+const coerceId = (field: string) =>
+  z.coerce.number().int().positive(`${field} is required`);
+
+const text = z.string().trim().min(1, "Field must not be empty").max(255);
+
+const date = z.string().refine((v) => !isNaN(Date.parse(v)), "Invalid date");
+
+const sex = z.enum([Sex.MALE, Sex.FEMALE, Sex.OTHER]);
+
+const payoutFields = {
+  preferredPayoutMethod: z
+    .enum([
+      PaymentMethod.BKASH,
+      PaymentMethod.NAGAD,
+      PaymentMethod.ROCKET,
+      PaymentMethod.BANK_TRANSFER,
+      PaymentMethod.CASH,
+    ])
+    .optional(),
+  bkashNumber: z.string().max(64).optional(),
+  nagadNumber: z.string().max(64).optional(),
+  bankAccountName: z.string().max(255).optional(),
+  bankAccountNumber: z.string().max(64).optional(),
+  bankAccountBranch: z.string().max(255).optional(),
+};
+
+const individualUpdate = z.object({
+  fullName: text.optional(),
+  telephone: z.string().min(8, "Telephone is required").optional(),
+  dateOfBirth: date.optional(),
+  sex: sex.optional(),
+  occupation: occupationSchema.optional(),
+  qualifiedInvoiceStatus: qualifiedInvoice,
+  postCode: text.optional(),
+  districtId: coerceId("District").optional(),
+  cityTownVillage: text.optional(),
+  streetAddress: text.optional(),
+  apartment: z.string().max(255).optional(),
+  ...payoutFields,
+});
+
+const corporationUpdate = z.object({
+  qualifiedInvoiceStatus: z.string().optional(),
+  companyName: text.optional(),
+  companyTelephone: z.string().min(8).optional(),
+  companyPostCode: text.optional(),
+  companyDistrictId: coerceId("District").optional(),
+  companyCityTownVillage: text.optional(),
+  companyStreetAddress: text.optional(),
+  companyApartment: z.string().max(255).optional(),
+  contactName: text.optional(),
+  contactTelephone: z.string().min(8).optional(),
+  contactDateOfBirth: date.optional(),
+  contactSex: sex.optional(),
+  contactOccupation: z.string().max(255).optional(),
+  contactPostCode: text.optional(),
+  contactDistrictId: coerceId("District").optional(),
+  contactCityTownVillage: text.optional(),
+  contactStreetAddress: text.optional(),
+  contactApartment: z.string().max(255).optional(),
+  bankAccount: z.string().max(255).optional(),
+  bankAccountBranch: z.string().max(255).optional(),
+  bankAccountType: bankAccountTypeSchema.optional(),
+  bankAccountNumber: z.string().max(64).optional(),
+  bankAccountName: z.string().max(255).optional(),
+});
+
+/**
+ * Update the authenticated user's own profile. Every field is optional so a
+ * user can update just one section at a time. `individual` / `corporation`
+ * sub-objects are only applied when the user's accountType matches.
+ */
+export const updateMyProfileZodSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(200).optional(),
+  image: z.string().url("Invalid image URL").optional(),
+  displayName: z.string().trim().max(200).optional(),
+  individual: individualUpdate.optional(),
+  corporation: corporationUpdate.optional(),
+});
+
 // Payout info — how the business pays the customer for sold items.
 // All fields optional so the customer can update just one at a time.
 export const updatePayoutInfoZodSchema = z.object({
